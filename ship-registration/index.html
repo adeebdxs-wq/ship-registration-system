@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>الرئيسية - الهيئة العامة للشئون البحرية</title>
+  <meta name="description" content="نظام تسجيل السفن الإلكتروني - الهيئة العامة للشئون البحرية">
+  <meta name="keywords" content="سفن, تسجيل, بحري, هيئة بحرية, يمن">
+
+  <!-- Fonts & Icons -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Arabic:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <!-- CSS -->
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/components.css">
+  <link rel="stylesheet" href="css/responsive.css">
+  
+  <style>
+    /* أنماط إضافية خاصة بالصفحة الرئيسية */
+    .welcome-section {
+      background: linear-gradient(rgba(26, 54, 93, 0.95), rgba(13, 43, 78, 0.9)),
+                  url('https://images.unsplash.com/photo-1544551763-46a013bb70d5?ixlib=rb-1.2.1&auto=format&fit=crop&w=1950&q=80');
+      background-size: cover;
+      background-position: center;
+      padding: 100px 0;
+      color: white;
+    }
+    
+    .mission-section {
+      background-color: var(--white);
+      padding: 80px 0;
+    }
+    
+    .services-section {
+      background-color: var(--light-gray);
+      padding: 80px 0;
+    }
+    
+    .features-section {
+      background-color: var(--white);
+      padding: 80px 0;
+    }
+  </style>
+</head>
+<body>
+  <!-- الهيدر الرئيسي -->
+  <header class="main-header">
+    <div class="container">
+      <div class="header-container">
+        <div class="logo-section">
+          <img src="../assets/images/logo.svg" 
+               alt="شعار الهيئة العامة للشئون البحرية" 
+               class="logo-img">
+          <div class="logo-text">
+            <h1>الهيئة العامة للشئون البحرية</h1>
+            <p>نظام تسجيل السفن الإلكتروني</p>
+          </div>
+        </div>
+        
+        <div class="nav-container">
+          <ul class="nav-menu" id="navMenu">
+            <li class="nav-item">
+              <a href="index.html" class="nav-link active">الرئيسية</a>
+            </li>
+            <li class="nav-item">
+              <a href="#services" class="nav-link">الخدمات</a>
+            </li>
+            <li class="nav-item">
+              <a href="#about" class="nav-link">عن الهيئة</a>
+            </li>
+            <li class="nav-item">
+              <a href="#contact" class="nav-link">اتصل بنا</a>
+            </li>
+            <li class="nav-item">
+              <a href="pages/ship-owner-register.html" class="nav-link">تسجيل السفن</a>
+            </li>
+            <li class="nav-item">
+              <a href="pages/login.html" class="nav-link btn-login">دخول الموظفين</a>
+            </li>
+          </ul>
+          
+          <button class="mobile-menu-btn" id="mobileMenuBtn">
+            <i class="fas fa-bars"></i>
+          </button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- قسم الترحيب -->
+  <section class="welcome-section">
+    <div class="container">
+      <div class="hero-content text-center">
+        <h1 class="hero-title">نظام تسجيل السفن الإلكتروني</h1>
+        <p class="hero-subtitle">
+          هيئة مختصة بتنفيذ مهام الدولة في مجال الشئون البحرية<br>
+          نسعى لتأمين سلامة الملاحة البحرية وحماية البيئة البحرية
+        </p>
+        <div class="cta-buttons">
+          <a href="pages/ship-owner-register.html" class="btn btn-primary btn-lg">
+            <i class="fas fa-ship"></i> تسجيل سفينة جديدة
+          </a>
+          <a href="pages/ship-owner-login.html" class="btn btn-outline btn-lg">
+            <i class="fas fa-user-tie"></i> بوابة ملاك السفن
+          </a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- قسم المهمة والرؤية -->
+  <section class="mission-section" id="about">
+    <div class="container">
+      <h2 class="section-title">مهمتنا ورؤيتنا</h2>
+      <div class="grid grid-auto-fit">
+        <div class="feature-item">
+          <div class="feature-icon">
+            <i class="fas fa-ship"></i>
+          </div>
+          <h4>سلامة الملاحة البحرية</h4>
+          <p>تنظيم ومراقبة وتأمين سلامة الملاحة البحرية وفقاً للمعايير الدولية</p>
+        </div>
+        
+        <div class="feature-item">
+          <div class="feature-icon">
+            <i class="fas fa-shield-alt"></i>
+          </div>
+          <h4>حماية البيئة البحرية</h4>
+          <p>الحفاظ على البيئة البحرية من التلوث وفق المعايير الدولية</p>
+        </div>
+        
+        <div class="feature-item">
+          <div class="feature-icon">
+            <i class="fas fa-anchor"></i>
+          </div>
+          <h4>تكوين أسطول بحري</h4>
+          <p>تشجيع تكوين أسطول بحري يمني يدعم التنمية الاقتصادية</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- قسم الخدمات الإلكترونية -->
+  <section class="services-section" id="services">
+    <div class="container">
+      <h2 class="section-title">الخدمات الإلكترونية</h2>
+      <div class="service-cards">
+        <div class="service-card">
+          <div class="service-header">
+            <h3>خدمة تسجيل السفن التجارية</h3>
+          </div>
+          <div class="service-content">
+            <p>تسجيل السفن تحت العلم اليمني وفقاً للقانون البحري</p>
+            <ul>
+              <li>
+                <i class="fas fa-check-circle" style="color: var(--success-green); margin-left: 8px;"></i>
+                تسجيل السفن الجديدة
+              </li>
+              <li>
+                <i class="fas fa-check-circle" style="color: var(--success-green); margin-left: 8px;"></i>
+                تجديد تسجيل السفن
+              </li>
+              <li>
+                <i class="fas fa-check-circle" style="color: var(--success-green); margin-left: 8px;"></i>
+                نقل الملكية
+              </li>
+              <li>
+                <i class="fas fa-check-circle" style="color: var(--success-green); margin-left: 8px;"></i>
+                شطب التسجيل
+              </li>
+            </ul>
+            <a href="pages/ship-owner-register.html" class="btn btn-primary" style="display: inline-block; margin-top: 20px;">
+              بدء التسجيل
+            </a>
+          </div>
+        </div>
+        
+        <div class="service-card">
+          <div class="service-header">
+            <h3>خدمات الترخيص والتصديق</h3>
+          </div>
+          <div class="service-content">
+            <p>إصدار التراخيص والشهادات البحرية المختلفة</p>
+            <ul>
+              <li>
+                <i class="fas fa-check-circle" style="color: var(--success-green); margin-left: 8px;"></i>
+                تراخيص الملاحة
+              </li>
+              <li>
+                <i class="fas fa-check-circle" style="color: var(--success-green); margin-left: 8px;"></i>
+                شهادات الصلاحية
+              </li>
+              <li>
+                <i class="fas fa-check-circle" style="color: var(--success-green); margin-left: 8px;"></i>
+                تصديق الوثائق
+              </li>
+              <li>
+                <i class="fas fa-check-circle" style="color: var(--success-green); margin-left: 8px;"></i>
+                شهادات التفتيش
+              </li>
+            </ul>
+          </div>
+        </div>
+        
+        <div class="service-card">
+          <div class="service-header">
+            <h3>خدمات الرقابة والتفتيش</h3>
+          </div>
+          <div class="service-content">
+            <p>التفتيش والرقابة على السفن في المياه الإقليمية</p>
+            <ul>
+              <li>
+                <i class="fas fa-check-circle" style="color: var(--success-green); margin-left: 8px;"></i>
+                تفتيش السفن
+              </li>
+              <li>
+                <i class="fas fa-check-circle" style="color: var(--success-green); margin-left: 8px;"></i>
+                فحص الوثائق
+              </li>
+              <li>
+                <i class="fas fa-check-circle" style="color: var(--success-green); margin-left: 8px;"></i>
+                مراقبة الامتثال
+              </li>
+              <li>
+                <i class="fas fa-check-circle" style="color: var(--success-green); margin-left: 8px;"></i>
+                تقارير التفتيش
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- قسم الميزات -->
+  <section class="features-section">
+    <div class="container">
+      <h2 class="section-title">مميزات النظام الإلكتروني</h2>
+      <div class="grid grid-auto-fit">
+        <div class="feature-item">
+          <div class="feature-icon">
+            <i class="fas fa-bolt"></i>
+          </div>
+          <h4>معالجة سريعة</h4>
+          <p>إنجاز المعاملات في وقت قياسي</p>
+        </div>
+        
+        <div class="feature-item">
+          <div class="feature-icon">
+            <i class="fas fa-lock"></i>
+          </div>
+          <h4>آمن ومحمي</h4>
+          <p>نظام آمن مع تشفير البيانات</p>
+        </div>
+        
+        <div class="feature-item">
+          <div class="feature-icon">
+            <i class="fas fa-headset"></i>
+          </div>
+          <h4>دعم فني</h4>
+          <p>دعم فني على مدار الساعة</p>
+        </div>
+        
+        <div class="feature-item">
+          <div class="feature-icon">
+            <i class="fas fa-mobile-alt"></i>
+          </div>
+          <h4>متعدد المنصات</h4>
+          <p>يعمل على جميع الأجهزة</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- الفوتر -->
+  <footer class="main-footer" id="contact">
+    <div class="footer-container">
+      <div class="footer-column">
+        <h4>الهيئة العامة للشئون البحرية</h4>
+        <p>هيئة حكومية بحرية مختصة بتنفيذ مهام الدولة في مجال الشئون البحرية وتسعى لتأمين سلامة الملاحة البحرية وحماية البيئة البحرية.</p>
+      </div>
+      
+      <div class="footer-column">
+        <h4>روابط سريعة</h4>
+        <ul class="footer-links">
+          <li><a href="index.html"><i class="fas fa-chevron-left"></i> الرئيسية</a></li>
+          <li><a href="pages/ship-owner-register.html"><i class="fas fa-chevron-left"></i> تسجيل ملاك السفن</a></li>
+          <li><a href="pages/login.html"><i class="fas fa-chevron-left"></i> تسجيل دخول الموظفين</a></li>
+          <li><a href="pages/ship-owner-login.html"><i class="fas fa-chevron-left"></i> دخول ملاك السفن</a></li>
+        </ul>
+      </div>
+      
+      <div class="footer-column">
+        <h4>اتصل بنا</h4>
+        <ul class="footer-links">
+          <li><i class="fas fa-phone" style="margin-left: 8px;"></i> 017123456</li>
+          <li><i class="fas fa-envelope" style="margin-left: 8px;"></i> info@maritime.gov.ye</li>
+          <li><i class="fas fa-map-marker-alt" style="margin-left: 8px;"></i> عدن - الجمهورية اليمنية</li>
+        </ul>
+      </div>
+      
+      <div class="footer-column">
+        <h4>ساعات العمل</h4>
+        <ul class="footer-links">
+          <li><i class="fas fa-calendar"></i> الأحد - الخميس: 8 صباحاً - 3 مساءً</li>
+          <li><i class="fas fa-calendar"></i> الجمعة والسبت: إجازة رسمية</li>
+          <li><i class="fas fa-clock"></i> خدمة الطوارئ: على مدار الساعة</li>
+        </ul>
+      </div>
+    </div>
+    
+    <div class="copyright">
+      <p>جميع الحقوق محفوظة © 2025 الهيئة العامة للشئون البحرية - الجمهورية اليمنية</p>
+    </div>
+  </footer>
+
+  <!-- JavaScript -->
+  <script src="js/main.js"></script>
+  <script src="js/auth.js"></script>
+  <script>
+    // تأثير التمرير الناعم
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+      anchor.addEventListener('click', function(e) {
+        const targetId = this.getAttribute('href');
+        if (targetId === '#') return;
+        
+        const targetElement = document.querySelector(targetId);
+        if (targetElement) {
+          e.preventDefault();
+          window.scrollTo({
+            top: targetElement.offsetTop - 80,
+            behavior: 'smooth'
+          });
+        }
+      });
+    });
+  </script>
+</body>
+</html>

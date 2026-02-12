@@ -1,0 +1,2675 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>التقارير والإحصائيات - نظام تسجيل السفن</title>
+    <link rel="stylesheet" href="../css/main-styles.css">
+    <link rel="stylesheet" href="../css/dashboard-styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css">
+    <link rel="stylesheet" href="https://cdn.datatables.net/buttons/2.4.1/css/buttons.bootstrap5.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.css">
+</head>
+<body>
+    <!-- شريط التنقل العلوي -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="nav-right">
+                <a href="../index.html" class="logo">
+                    <img src="../images/logo.png" alt="شعار الميناء">
+                    <span>نظام تسجيل السفن</span>
+                </a>
+            </div>
+            
+            <div class="nav-center">
+                <h2 class="nav-title">
+                    <i class="fas fa-chart-bar"></i>
+                    التقارير والإحصائيات
+                </h2>
+            </div>
+            
+            <div class="nav-left">
+                <div class="user-info">
+                    <div class="user-avatar">
+                        <i class="fas fa-user-shield"></i>
+                    </div>
+                    <div class="user-details">
+                        <span class="user-name">مدير النظام</span>
+                        <span class="user-role">مسؤول التقارير</span>
+                    </div>
+                </div>
+                <button class="btn-logout" onclick="logout()">
+                    <i class="fas fa-sign-out-alt"></i>
+                    تسجيل الخروج
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- القائمة الجانبية -->
+    <div class="dashboard-container">
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <h3><i class="fas fa-chart-pie"></i> أنواع التقارير</h3>
+            </div>
+            
+            <ul class="sidebar-menu">
+                <li class="active">
+                    <a href="#" onclick="showReportTab('overview')">
+                        <i class="fas fa-tachometer-alt"></i>
+                        <span>نظرة عامة</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="#" onclick="showReportTab('ship-reports')">
+                        <i class="fas fa-ship"></i>
+                        <span>تقارير السفن</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="#" onclick="showReportTab('financial-reports')">
+                        <i class="fas fa-money-bill-wave"></i>
+                        <span>تقارير مالية</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="#" onclick="showReportTab('employee-reports')">
+                        <i class="fas fa-users"></i>
+                        <span>تقارير الموظفين</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="#" onclick="showReportTab('branch-reports')">
+                        <i class="fas fa-building"></i>
+                        <span>تقارير الفروع</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="#" onclick="showReportTab('performance-reports')">
+                        <i class="fas fa-chart-line"></i>
+                        <span>تقارير الأداء</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="#" onclick="showReportTab('custom-reports')">
+                        <i class="fas fa-cogs"></i>
+                        <span>تقارير مخصصة</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="#" onclick="showReportTab('archive')">
+                        <i class="fas fa-archive"></i>
+                        <span>أرشيف التقارير</span>
+                        <span class="badge">24</span>
+                    </a>
+                </li>
+            </ul>
+            
+            <div class="sidebar-footer">
+                <div class="reports-info">
+                    <h4><i class="fas fa-info-circle"></i> معلومات التقارير</h4>
+                    <p><strong>آخر تحديث:</strong> اليوم 09:00 ص</p>
+                    <p><strong>إجمالي التقارير:</strong> 48 تقرير</p>
+                    <p><strong>الحالة:</strong> <span class="status-active">نشط</span></p>
+                </div>
+            </div>
+        </aside>
+
+        <!-- المحتوى الرئيسي -->
+        <main class="main-content">
+            <!-- شريط أدوات التقارير -->
+            <div class="reports-toolbar">
+                <div class="toolbar-left">
+                    <div class="date-range-picker">
+                        <i class="fas fa-calendar-alt"></i>
+                        <input type="text" id="reportDateRange" placeholder="اختر الفترة الزمنية">
+                        <button class="btn-apply-date" onclick="applyDateRange()">
+                            <i class="fas fa-check"></i> تطبيق
+                        </button>
+                    </div>
+                    
+                    <div class="quick-stats">
+                        <div class="quick-stat">
+                            <span class="stat-label">الفترة:</span>
+                            <span class="stat-value" id="currentPeriod">آخر 30 يوم</span>
+                        </div>
+                        <div class="quick-stat">
+                            <span class="stat-label">التحديث:</span>
+                            <span class="stat-value">تلقائي</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="toolbar-right">
+                    <button class="btn-toolbar" onclick="refreshReports()">
+                        <i class="fas fa-sync-alt"></i>
+                        تحديث
+                    </button>
+                    
+                    <button class="btn-toolbar" onclick="exportAllReports()">
+                        <i class="fas fa-file-export"></i>
+                        تصدير الكل
+                    </button>
+                    
+                    <button class="btn-toolbar" onclick="scheduleReport()">
+                        <i class="fas fa-clock"></i>
+                        جدولة
+                    </button>
+                    
+                    <button class="btn-toolbar primary" onclick="generateCustomReport()">
+                        <i class="fas fa-plus"></i>
+                        تقرير جديد
+                    </button>
+                </div>
+            </div>
+
+            <!-- تبويبات التقارير -->
+            <div class="reports-tabs">
+                <!-- تبويب النظرة العامة -->
+                <div id="overview-tab" class="report-tab active">
+                    <div class="tab-header">
+                        <h3><i class="fas fa-tachometer-alt"></i> نظرة عامة على التقارير</h3>
+                        <p class="tab-subtitle">مؤشرات أداء النظام والإحصائيات الرئيسية</p>
+                    </div>
+                    
+                    <!-- بطاقات المؤشرات الرئيسية -->
+                    <div class="kpi-cards">
+                        <div class="kpi-card">
+                            <div class="kpi-header">
+                                <h4>إجمالي السفن المسجلة</h4>
+                                <span class="kpi-trend up">+12%</span>
+                            </div>
+                            <div class="kpi-value">1,248</div>
+                            <div class="kpi-details">
+                                <div class="kpi-detail">
+                                    <span class="detail-label">هذا الشهر:</span>
+                                    <span class="detail-value">84 سفينة</span>
+                                </div>
+                                <div class="kpi-detail">
+                                    <span class="detail-label">الأسبوع الحالي:</span>
+                                    <span class="detail-value">22 سفينة</span>
+                                </div>
+                            </div>
+                            <div class="kpi-chart mini">
+                                <canvas id="shipsChart"></canvas>
+                            </div>
+                        </div>
+                        
+                        <div class="kpi-card">
+                            <div class="kpi-header">
+                                <h4>إيرادات النظام</h4>
+                                <span class="kpi-trend up">+18%</span>
+                            </div>
+                            <div class="kpi-value">4,850,000 ريال</div>
+                            <div class="kpi-details">
+                                <div class="kpi-detail">
+                                    <span class="detail-label">هذا الشهر:</span>
+                                    <span class="detail-value">325,000 ريال</span>
+                                </div>
+                                <div class="kpi-detail">
+                                    <span class="detail-label">متوسط/سفينة:</span>
+                                    <span class="detail-value">3,885 ريال</span>
+                                </div>
+                            </div>
+                            <div class="kpi-chart mini">
+                                <canvas id="revenueChart"></canvas>
+                            </div>
+                        </div>
+                        
+                        <div class="kpi-card">
+                            <div class="kpi-header">
+                                <h4>الطلبات النشطة</h4>
+                                <span class="kpi-trend down">-3%</span>
+                            </div>
+                            <div class="kpi-value">156</div>
+                            <div class="kpi-details">
+                                <div class="kpi-detail">
+                                    <span class="detail-label">قيد المراجعة:</span>
+                                    <span class="detail-value">42 طلب</span>
+                                </div>
+                                <div class="kpi-detail">
+                                    <span class="detail-label">متوسط وقت المعالجة:</span>
+                                    <span class="detail-value">1.8 يوم</span>
+                                </div>
+                            </div>
+                            <div class="kpi-chart mini">
+                                <canvas id="requestsChart"></canvas>
+                            </div>
+                        </div>
+                        
+                        <div class="kpi-card">
+                            <div class="kpi-header">
+                                <h4>أداء الموظفين</h4>
+                                <span class="kpi-trend up">+5%</span>
+                            </div>
+                            <div class="kpi-value">87%</div>
+                            <div class="kpi-details">
+                                <div class="kpi-detail">
+                                    <span class="detail-label">معدل الإنجاز:</span>
+                                    <span class="detail-value success">92%</span>
+                                </div>
+                                <div class="kpi-detail">
+                                    <span class="detail-label">رضا العملاء:</span>
+                                    <span class="detail-value success">94%</span>
+                                </div>
+                            </div>
+                            <div class="kpi-chart mini">
+                                <canvas id="performanceChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- الرسوم البيانية الرئيسية -->
+                    <div class="main-charts">
+                        <div class="chart-card large">
+                            <div class="chart-header">
+                                <h4><i class="fas fa-chart-line"></i> إحصائيات التسجيل الشهرية</h4>
+                                <div class="chart-controls">
+                                    <select id="chartType" onchange="updateMainChart()">
+                                        <option value="monthly">شهري</option>
+                                        <option value="quarterly">ربع سنوي</option>
+                                        <option value="yearly">سنوي</option>
+                                    </select>
+                                    <button class="btn-chart-action" onclick="exportChart('registrationsChart')">
+                                        <i class="fas fa-download"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="chart-body">
+                                <canvas id="registrationsChart"></canvas>
+                            </div>
+                        </div>
+                        
+                        <div class="chart-card">
+                            <div class="chart-header">
+                                <h4><i class="fas fa-chart-pie"></i> توزيع أنواع السفن</h4>
+                            </div>
+                            <div class="chart-body">
+                                <canvas id="shipTypesChart"></canvas>
+                            </div>
+                            <div class="chart-footer">
+                                <div class="chart-legend">
+                                    <div class="legend-item">
+                                        <span class="legend-color" style="background-color: #4CAF50;"></span>
+                                        <span>سفن شحن (45%)</span>
+                                    </div>
+                                    <div class="legend-item">
+                                        <span class="legend-color" style="background-color: #2196F3;"></span>
+                                        <span>ناقلات نفط (25%)</span>
+                                    </div>
+                                    <div class="legend-item">
+                                        <span class="legend-color" style="background-color: #FF9800;"></span>
+                                        <span>سفن ركاب (18%)</span>
+                                    </div>
+                                    <div class="legend-item">
+                                        <span class="legend-color" style="background-color: #9C27B0;"></span>
+                                        <span>سفن صيد (12%)</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- جدول الإحصائيات التفصيلية -->
+                    <div class="detailed-stats">
+                        <div class="stats-table-card">
+                            <div class="table-header">
+                                <h4><i class="fas fa-table"></i> إحصائيات الفروع</h4>
+                                <button class="btn-export" onclick="exportBranchStats()">
+                                    <i class="fas fa-file-excel"></i> Excel
+                                </button>
+                            </div>
+                            <div class="table-responsive">
+                                <table class="stats-table">
+                                    <thead>
+                                        <tr>
+                                            <th>الفرع</th>
+                                            <th>السفن المسجلة</th>
+                                            <th>الطلبات النشطة</th>
+                                            <th>الإيرادات</th>
+                                            <th>معدل النمو</th>
+                                            <th>كفاءة الموظفين</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td>
+                                                <div class="branch-info">
+                                                    <div class="branch-icon">
+                                                        <i class="fas fa-anchor"></i>
+                                                    </div>
+                                                    <div class="branch-name">
+                                                        <strong>ميناء الحديدة</strong>
+                                                        <small>الفرع الرئيسي</small>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td>648</td>
+                                            <td>78</td>
+                                            <td>2,450,000 ريال</td>
+                                            <td><span class="growth up">+15%</span></td>
+                                            <td><span class="efficiency high">92%</span></td>
+                                        </tr>
+                                        <tr>
+                                            <td>
+                                                <div class="branch-info">
+                                                    <div class="branch-icon">
+                                                        <i class="fas fa-ship"></i>
+                                                    </div>
+                                                    <div class="branch-name">
+                                                        <strong>ميناء عدن</strong>
+                                                        <small>الفرع الجنوبي</small>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td>324</td>
+                                            <td>42</td>
+                                            <td>1,250,000 ريال</td>
+                                            <td><span class="growth up">+8%</span></td>
+                                            <td><span class="efficiency medium">85%</span></td>
+                                        </tr>
+                                        <tr>
+                                            <td>
+                                                <div class="branch-info">
+                                                    <div class="branch-icon">
+                                                        <i class="fas fa-water"></i>
+                                                    </div>
+                                                    <div class="branch-name">
+                                                        <strong>ميناء المكلا</strong>
+                                                        <small>الفرع الشرقي</small>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td>156</td>
+                                            <td>24</td>
+                                            <td>680,000 ريال</td>
+                                            <td><span class="growth up">+12%</span></td>
+                                            <td><span class="efficiency high">90%</span></td>
+                                        </tr>
+                                        <tr>
+                                            <td>
+                                                <div class="branch-info">
+                                                    <div class="branch-icon">
+                                                        <i class="fas fa-fish"></i>
+                                                    </div>
+                                                    <div class="branch-name">
+                                                        <strong>ميناء الصليف</strong>
+                                                        <small>الفرع الشمالي</small>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td>120</td>
+                                            <td>12</td>
+                                            <td>470,000 ريال</td>
+                                            <td><span class="growth down">-2%</span></td>
+                                            <td><span class="efficiency low">78%</span></td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- تبويب تقارير السفن -->
+                <div id="ship-reports-tab" class="report-tab">
+                    <div class="tab-header">
+                        <h3><i class="fas fa-ship"></i> تقارير السفن</h3>
+                        <p class="tab-subtitle">إحصائيات وتحليلات مفصلة عن السفن المسجلة</p>
+                    </div>
+                    
+                    <div class="report-filters">
+                        <div class="filter-group">
+                            <label>نوع السفينة:</label>
+                            <select id="shipTypeFilter">
+                                <option value="all">الكل</option>
+                                <option value="cargo">سفن شحن</option>
+                                <option value="tanker">ناقلات نفط</option>
+                                <option value="passenger">سفن ركاب</option>
+                                <option value="fishing">سفن صيد</option>
+                                <option value="container">سفن حاويات</option>
+                            </select>
+                        </div>
+                        
+                        <div class="filter-group">
+                            <label>حالة التسجيل:</label>
+                            <select id="registrationStatusFilter">
+                                <option value="all">الكل</option>
+                                <option value="active">نشط</option>
+                                <option value="expired">منتهي</option>
+                                <option value="pending">قيد التجديد</option>
+                                <option value="suspended">موقوف</option>
+                            </select>
+                        </div>
+                        
+                        <div class="filter-group">
+                            <label>نطاق الحمولة:</label>
+                            <select id="tonnageFilter">
+                                <option value="all">الكل</option>
+                                <option value="small">صغير (أقل من 1000 طن)</option>
+                                <option value="medium">متوسط (1000-10000 طن)</option>
+                                <option value="large">كبير (أكثر من 10000 طن)</option>
+                            </select>
+                        </div>
+                        
+                        <button class="btn-apply-filters" onclick="applyShipFilters()">
+                            <i class="fas fa-filter"></i> تطبيق الفلاتر
+                        </button>
+                        
+                        <button class="btn-clear-filters" onclick="clearShipFilters()">
+                            <i class="fas fa-times"></i> مسح الكل
+                        </button>
+                    </div>
+                    
+                    <div class="ship-stats-cards">
+                        <div class="stat-card ship-stat">
+                            <div class="stat-icon">
+                                <i class="fas fa-ship"></i>
+                            </div>
+                            <div class="stat-info">
+                                <h3>1,248</h3>
+                                <p>إجمالي السفن المسجلة</p>
+                            </div>
+                            <div class="stat-trend up">+84 هذا الشهر</div>
+                        </div>
+                        
+                        <div class="stat-card ship-stat">
+                            <div class="stat-icon">
+                                <i class="fas fa-file-contract"></i>
+                            </div>
+                            <div class="stat-info">
+                                <h3>156</h3>
+                                <p>طلبات تسجيل جديدة</p>
+                            </div>
+                            <div class="stat-trend up">+22 هذا الأسبوع</div>
+                        </div>
+                        
+                        <div class="stat-card ship-stat">
+                            <div class="stat-icon">
+                                <i class="fas fa-calendar-check"></i>
+                            </div>
+                            <div class="stat-info">
+                                <h3>42</h3>
+                                <p>سفن تحتاج تجديد</p>
+                            </div>
+                            <div class="stat-trend warning">خلال 30 يوم</div>
+                        </div>
+                        
+                        <div class="stat-card ship-stat">
+                            <div class="stat-icon">
+                                <i class="fas fa-flag"></i>
+                            </div>
+                            <div class="stat-info">
+                                <h3>94%</h3>
+                                <p>معدل التجديد</p>
+                            </div>
+                            <div class="stat-trend up">+3% عن العام الماضي</div>
+                        </div>
+                    </div>
+                    
+                    <div class="charts-row">
+                        <div class="chart-card">
+                            <div class="chart-header">
+                                <h4>توزيع السفن حسب النوع</h4>
+                            </div>
+                            <div class="chart-body">
+                                <canvas id="shipDistributionChart"></canvas>
+                            </div>
+                        </div>
+                        
+                        <div class="chart-card">
+                            <div class="chart-header">
+                                <h4>السفن المسجلة حسب الحجم</h4>
+                            </div>
+                            <div class="chart-body">
+                                <canvas id="shipSizeChart"></canvas>
+                            </div>
+                        </div>
+                        
+                        <div class="chart-card">
+                            <div class="chart-header">
+                                <h4>سفن تحت التجديد</h4>
+                            </div>
+                            <div class="chart-body">
+                                <div class="renewal-timeline">
+                                    <div class="timeline-item urgent">
+                                        <div class="timeline-date">خلال 7 أيام</div>
+                                        <div class="timeline-count">8 سفن</div>
+                                    </div>
+                                    <div class="timeline-item warning">
+                                        <div class="timeline-date">خلال 30 يوم</div>
+                                        <div class="timeline-count">24 سفينة</div>
+                                    </div>
+                                    <div class="timeline-item info">
+                                        <div class="timeline-date">خلال 90 يوم</div>
+                                        <div class="timeline-count">42 سفينة</div>
+                                    </div>
+                                    <div class="timeline-item safe">
+                                        <div class="timeline-date">أكثر من 90 يوم</div>
+                                        <div class="timeline-count">1,174 سفينة</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="ship-details-table">
+                        <div class="table-header">
+                            <h4><i class="fas fa-list"></i> تفاصيل السفن المسجلة</h4>
+                            <div class="table-actions">
+                                <button class="btn-action" onclick="exportShipDetails()">
+                                    <i class="fas fa-download"></i> تصدير
+                                </button>
+                                <button class="btn-action" onclick="printShipReport()">
+                                    <i class="fas fa-print"></i> طباعة
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <div class="table-responsive">
+                            <table id="shipsTable" class="data-table">
+                                <thead>
+                                    <tr>
+                                        <th>رقم التسجيل</th>
+                                        <th>اسم السفينة</th>
+                                        <th>النوع</th>
+                                        <th>الحمولة (طن)</th>
+                                        <th>صاحب السفينة</th>
+                                        <th>تاريخ التسجيل</th>
+                                        <th>تاريخ الانتهاء</th>
+                                        <th>الفرع</th>
+                                        <th>الحالة</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <!-- سيتم تعبئة البيانات بواسطة JavaScript -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- تبويب التقارير المالية -->
+                <div id="financial-reports-tab" class="report-tab">
+                    <div class="tab-header">
+                        <h3><i class="fas fa-money-bill-wave"></i> التقارير المالية</h3>
+                        <p class="tab-subtitle">تحليل الإيرادات والمصروفات والأداء المالي</p>
+                    </div>
+                    
+                    <div class="financial-overview">
+                        <div class="financial-kpi">
+                            <div class="kpi-item">
+                                <div class="kpi-label">الإيرادات الشهرية</div>
+                                <div class="kpi-value">325,000 ريال</div>
+                                <div class="kpi-change up">+18% عن الشهر الماضي</div>
+                            </div>
+                            
+                            <div class="kpi-item">
+                                <div class="kpi-label">متوسط الإيراد/سفينة</div>
+                                <div class="kpi-value">3,885 ريال</div>
+                                <div class="kpi-change up">+5% عن العام الماضي</div>
+                            </div>
+                            
+                            <div class="kpi-item">
+                                <div class="kpi-label">معدل التحصيل</div>
+                                <div class="kpi-value">96%</div>
+                                <div class="kpi-change up">+2% عن الربع الماضي</div>
+                            </div>
+                            
+                            <div class="kpi-item">
+                                <div class="kpi-label">المستحقات</div>
+                                <div class="kpi-value">45,200 ريال</div>
+                                <div class="kpi-change down">-8% عن الشهر الماضي</div>
+                            </div>
+                        </div>
+                        
+                        <div class="revenue-chart-card">
+                            <div class="chart-header">
+                                <h4>تحليل الإيرادات</h4>
+                                <div class="chart-period">
+                                    <select id="revenuePeriod" onchange="updateRevenueChart()">
+                                        <option value="monthly">شهري</option>
+                                        <option value="quarterly">ربع سنوي</option>
+                                        <option value="yearly">سنوي</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="chart-body">
+                                <canvas id="revenueAnalysisChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="financial-breakdown">
+                        <div class="breakdown-card">
+                            <div class="breakdown-header">
+                                <h4>الإيرادات حسب النوع</h4>
+                            </div>
+                            <div class="breakdown-body">
+                                <canvas id="revenueByTypeChart"></canvas>
+                            </div>
+                            <div class="breakdown-details">
+                                <div class="detail-item">
+                                    <span class="detail-label">رسوم التسجيل:</span>
+                                    <span class="detail-value">185,000 ريال</span>
+                                </div>
+                                <div class="detail-item">
+                                    <span class="detail-label">رسوم التجديد:</span>
+                                    <span class="detail-value">98,000 ريال</span>
+                                </div>
+                                <div class="detail-item">
+                                    <span class="detail-label">الغرامات:</span>
+                                    <span class="detail-value">32,000 ريال</span>
+                                </div>
+                                <div class="detail-item">
+                                    <span class="detail-label">خدمات إضافية:</span>
+                                    <span class="detail-value">10,000 ريال</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="breakdown-card">
+                            <div class="breakdown-header">
+                                <h4>الإيرادات حسب الفرع</h4>
+                            </div>
+                            <div class="breakdown-body">
+                                <table class="breakdown-table">
+                                    <thead>
+                                        <tr>
+                                            <th>الفرع</th>
+                                            <th>الإيرادات</th>
+                                            <th>النسبة</th>
+                                            <th>النمو</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td>الحديدة</td>
+                                            <td>2,450,000 ريال</td>
+                                            <td>51%</td>
+                                            <td><span class="growth up">+15%</span></td>
+                                        </tr>
+                                        <tr>
+                                            <td>عدن</td>
+                                            <td>1,250,000 ريال</td>
+                                            <td>26%</td>
+                                            <td><span class="growth up">+8%</span></td>
+                                        </tr>
+                                        <tr>
+                                            <td>المكلا</td>
+                                            <td>680,000 ريال</td>
+                                            <td>14%</td>
+                                            <td><span class="growth up">+12%</span></td>
+                                        </tr>
+                                        <tr>
+                                            <td>الصليف</td>
+                                            <td>470,000 ريال</td>
+                                            <td>9%</td>
+                                            <td><span class="growth down">-2%</span></td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="financial-reports-table">
+                        <div class="table-header">
+                            <h4><i class="fas fa-file-invoice-dollar"></i> تفاصيل المعاملات المالية</h4>
+                            <div class="table-filters">
+                                <select id="transactionType">
+                                    <option value="all">جميع المعاملات</option>
+                                    <option value="registration">رسوم تسجيل</option>
+                                    <option value="renewal">رسوم تجديد</option>
+                                    <option value="penalty">غرامات</option>
+                                    <option value="service">رسوم خدمات</option>
+                                </select>
+                                <button class="btn-export" onclick="exportFinancialReport()">
+                                    <i class="fas fa-file-excel"></i> تصدير
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <div class="table-responsive">
+                            <table id="financialTable" class="data-table">
+                                <thead>
+                                    <tr>
+                                        <th>رقم المعاملة</th>
+                                        <th>التاريخ</th>
+                                        <th>نوع المعاملة</th>
+                                        <th>المبلغ</th>
+                                        <th>رقم السفينة</th>
+                                        <th>صاحب الدفع</th>
+                                        <th>طريقة الدفع</th>
+                                        <th>الحالة</th>
+                                        <th>الفرع</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <!-- سيتم تعبئة البيانات بواسطة JavaScript -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- تبويب تقارير الموظفين -->
+                <div id="employee-reports-tab" class="report-tab">
+                    <div class="tab-header">
+                        <h3><i class="fas fa-users"></i> تقارير الموظفين</h3>
+                        <p class="tab-subtitle">تحليل أداء وإنتاجية موظفي النظام</p>
+                    </div>
+                    
+                    <div class="employee-performance-summary">
+                        <div class="performance-card">
+                            <div class="performance-header">
+                                <h4>مؤشرات الأداء العامة</h4>
+                            </div>
+                            <div class="performance-metrics">
+                                <div class="metric">
+                                    <div class="metric-value">87%</div>
+                                    <div class="metric-label">معدل الإنجاز العام</div>
+                                </div>
+                                <div class="metric">
+                                    <div class="metric-value">92%</div>
+                                    <div class="metric-label">رضا العملاء</div>
+                                </div>
+                                <div class="metric">
+                                    <div class="metric-value">1.5 يوم</div>
+                                    <div class="metric-label">متوسط وقت المعالجة</div>
+                                </div>
+                                <div class="metric">
+                                    <div class="metric-value">98%</div>
+                                    <div class="metric-label">الدقة في الإدخال</div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="top-performers">
+                            <div class="performers-header">
+                                <h4>أفضل 5 موظفين أداءً</h4>
+                            </div>
+                            <div class="performers-list">
+                                <div class="performer-item">
+                                    <div class="performer-rank">1</div>
+                                    <div class="performer-info">
+                                        <h5>أحمد محمد</h5>
+                                        <p>موظف فرع - الحديدة</p>
+                                    </div>
+                                    <div class="performer-score">94%</div>
+                                </div>
+                                
+                                <div class="performer-item">
+                                    <div class="performer-rank">2</div>
+                                    <div class="performer-info">
+                                        <h5>سالم عبدالله</h5>
+                                        <p>مراجع - عدن</p>
+                                    </div>
+                                    <div class="performer-score">91%</div>
+                                </div>
+                                
+                                <div class="performer-item">
+                                    <div class="performer-rank">3</div>
+                                    <div class="performer-info">
+                                        <h5>فاطمة علي</h5>
+                                        <p>مدخل بيانات - المكلا</p>
+                                    </div>
+                                    <div class="performer-score">88%</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="employee-charts-row">
+                        <div class="chart-card">
+                            <div class="chart-header">
+                                <h4>توزيع أداء الموظفين</h4>
+                            </div>
+                            <div class="chart-body">
+                                <canvas id="employeePerformanceChart"></canvas>
+                            </div>
+                        </div>
+                        
+                        <div class="chart-card">
+                            <div class="chart-header">
+                                <h4>نشاط الموظفين الشهري</h4>
+                            </div>
+                            <div class="chart-body">
+                                <canvas id="employeeActivityChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="employee-detailed-report">
+                        <div class="table-header">
+                            <h4><i class="fas fa-user-tie"></i> تقرير أداء الموظفين التفصيلي</h4>
+                            <div class="table-actions">
+                                <select id="departmentFilter">
+                                    <option value="all">جميع الأقسام</option>
+                                    <option value="reception">استقبال الطلبات</option>
+                                    <option value="review">مراجعة المستندات</option>
+                                    <option value="registration">التسجيل</option>
+                                    <option value="finance">المالية</option>
+                                </select>
+                                <button class="btn-export" onclick="exportEmployeeReport()">
+                                    <i class="fas fa-file-excel"></i> تصدير
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <div class="table-responsive">
+                            <table id="employeeReportTable" class="data-table">
+                                <thead>
+                                    <tr>
+                                        <th>الاسم</th>
+                                        <th>القسم</th>
+                                        <th>الفرع</th>
+                                        <th>عدد الطلبات</th>
+                                        <th>معدل الإنجاز</th>
+                                        <th>متوسط الوقت</th>
+                                        <th>دقة الإدخال</th>
+                                        <th>رضا العملاء</th>
+                                        <th>التقييم</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <!-- سيتم تعبئة البيانات بواسطة JavaScript -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- تبويب التقارير المخصصة -->
+                <div id="custom-reports-tab" class="report-tab">
+                    <div class="tab-header">
+                        <h3><i class="fas fa-cogs"></i> تقارير مخصصة</h3>
+                        <p class="tab-subtitle">إنشاء تقارير مخصصة حسب احتياجاتك</p>
+                    </div>
+                    
+                    <div class="custom-report-builder">
+                        <div class="builder-header">
+                            <h4>منشئ التقارير المخصصة</h4>
+                            <p>اختر المعايير لإنشاء تقرير مخصص</p>
+                        </div>
+                        
+                        <div class="builder-steps">
+                            <div class="step active">
+                                <div class="step-number">1</div>
+                                <div class="step-title">نوع التقرير</div>
+                            </div>
+                            <div class="step">
+                                <div class="step-number">2</div>
+                                <div class="step-title">المعايير</div>
+                            </div>
+                            <div class="step">
+                                <div class="step-number">3</div>
+                                <div class="step-title">التنسيق</div>
+                            </div>
+                            <div class="step">
+                                <div class="step-number">4</div>
+                                <div class="step-title">المعاينة</div>
+                            </div>
+                        </div>
+                        
+                        <div class="builder-content">
+                            <div class="criteria-section">
+                                <div class="criteria-group">
+                                    <h5>مجال التقرير</h5>
+                                    <div class="criteria-options">
+                                        <label class="criteria-option">
+                                            <input type="radio" name="reportScope" value="ships" checked>
+                                            <span>تقارير السفن</span>
+                                        </label>
+                                        <label class="criteria-option">
+                                            <input type="radio" name="reportScope" value="financial">
+                                            <span>تقارير مالية</span>
+                                        </label>
+                                        <label class="criteria-option">
+                                            <input type="radio" name="reportScope" value="employees">
+                                            <span>تقارير الموظفين</span>
+                                        </label>
+                                        <label class="criteria-option">
+                                            <input type="radio" name="reportScope" value="branches">
+                                            <span>تقارير الفروع</span>
+                                        </label>
+                                    </div>
+                                </div>
+                                
+                                <div class="criteria-group">
+                                    <h5>الفترة الزمنية</h5>
+                                    <div class="criteria-options">
+                                        <label class="criteria-option">
+                                            <input type="radio" name="timePeriod" value="custom" checked>
+                                            <span>مخصصة</span>
+                                        </label>
+                                        <label class="criteria-option">
+                                            <input type="radio" name="timePeriod" value="lastWeek">
+                                            <span>آخر أسبوع</span>
+                                        </label>
+                                        <label class="criteria-option">
+                                            <input type="radio" name="timePeriod" value="lastMonth">
+                                            <span>آخر شهر</span>
+                                        </label>
+                                        <label class="criteria-option">
+                                            <input type="radio" name="timePeriod" value="lastQuarter">
+                                            <span>آخر ربع سنة</span>
+                                        </label>
+                                        <label class="criteria-option">
+                                            <input type="radio" name="timePeriod" value="lastYear">
+                                            <span>آخر سنة</span>
+                                        </label>
+                                    </div>
+                                    
+                                    <div class="custom-date-range">
+                                        <div class="date-input">
+                                            <label>من تاريخ:</label>
+                                            <input type="date" id="startDate">
+                                        </div>
+                                        <div class="date-input">
+                                            <label>إلى تاريخ:</label>
+                                            <input type="date" id="endDate">
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="criteria-group">
+                                    <h5>الحقول المطلوبة</h5>
+                                    <div class="fields-grid" id="reportFields">
+                                        <!-- سيتم تعبئة الحقول ديناميكياً -->
+                                    </div>
+                                </div>
+                                
+                                <div class="criteria-group">
+                                    <h5>تنسيق التقرير</h5>
+                                    <div class="format-options">
+                                        <label class="format-option">
+                                            <input type="radio" name="reportFormat" value="pdf" checked>
+                                            <span>PDF</span>
+                                        </label>
+                                        <label class="format-option">
+                                            <input type="radio" name="reportFormat" value="excel">
+                                            <span>Excel</span>
+                                        </label>
+                                        <label class="format-option">
+                                            <input type="radio" name="reportFormat" value="csv">
+                                            <span>CSV</span>
+                                        </label>
+                                        <label class="format-option">
+                                            <input type="radio" name="reportFormat" value="html">
+                                            <span>HTML</span>
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="preview-section">
+                                <div class="preview-header">
+                                    <h5>معاينة التقرير</h5>
+                                </div>
+                                <div class="preview-content" id="reportPreview">
+                                    <div class="preview-placeholder">
+                                        <i class="fas fa-chart-bar"></i>
+                                        <p>ستظهر معاينة التقرير هنا بعد تحديد المعايير</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="builder-actions">
+                            <button class="btn-secondary" onclick="resetReportBuilder()">
+                                <i class="fas fa-redo"></i> إعادة تعيين
+                            </button>
+                            <button class="btn-primary" onclick="previewCustomReport()">
+                                <i class="fas fa-eye"></i> معاينة
+                            </button>
+                            <button class="btn-success" onclick="generateCustomReport()">
+                                <i class="fas fa-download"></i> إنشاء التقرير
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- نافذة جدولة التقارير -->
+    <div id="scheduleModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3><i class="fas fa-clock"></i> جدولة تقرير</h3>
+                <button class="close-modal" onclick="closeScheduleModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="scheduleForm">
+                    <div class="form-group">
+                        <label>اسم التقرير</label>
+                        <input type="text" name="reportName" placeholder="مثال: تقرير شهري عن السفن" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>نوع التقرير</label>
+                        <select name="reportType" required>
+                            <option value="">اختر نوع التقرير</option>
+                            <option value="ship_summary">ملخص السفن</option>
+                            <option value="financial_summary">ملخص مالي</option>
+                            <option value="employee_performance">أداء الموظفين</option>
+                            <option value="branch_performance">أداء الفروع</option>
+                            <option value="custom">مخصص</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>التكرار</label>
+                        <select name="frequency" required>
+                            <option value="daily">يومي</option>
+                            <option value="weekly">أسبوعي</option>
+                            <option value="monthly">شهري</option>
+                            <option value="quarterly">ربع سنوي</option>
+                            <option value="yearly">سنوي</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>وقت الإرسال</label>
+                        <input type="time" name="sendTime" value="09:00" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>المستلمون</label>
+                        <div class="recipients-list">
+                            <div class="recipient-item">
+                                <input type="checkbox" id="recipient1" checked>
+                                <label for="recipient1">مدير النظام</label>
+                            </div>
+                            <div class="recipient-item">
+                                <input type="checkbox" id="recipient2">
+                                <label for="recipient2">مديرو الفروع</label>
+                            </div>
+                            <div class="recipient-item">
+                                <input type="checkbox" id="recipient3">
+                                <label for="recipient3">فريق المالية</label>
+                            </div>
+                            <div class="recipient-item">
+                                <input type="checkbox" id="recipient4">
+                                <label for="recipient4">فريق الإدارة</label>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>تنسيق التقرير</label>
+                        <select name="format">
+                            <option value="pdf">PDF</option>
+                            <option value="excel">Excel</option>
+                            <option value="both">PDF و Excel</option>
+                        </select>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="submit" form="scheduleForm" class="btn-save">
+                    <i class="fas fa-save"></i> حفظ الجدولة
+                </button>
+                <button class="btn-cancel" onclick="closeScheduleModal()">إلغاء</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- نافذة تصدير التقارير -->
+    <div id="exportModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3><i class="fas fa-file-export"></i> تصدير التقارير</h3>
+                <button class="close-modal" onclick="closeExportModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="export-options">
+                    <div class="export-option">
+                        <input type="radio" id="exportAll" name="exportType" value="all" checked>
+                        <label for="exportAll">
+                            <div class="option-icon">
+                                <i class="fas fa-layer-group"></i>
+                            </div>
+                            <div class="option-info">
+                                <h5>جميع التقارير</h5>
+                                <p>تصدير جميع التقارير الحالية</p>
+                            </div>
+                        </label>
+                    </div>
+                    
+                    <div class="export-option">
+                        <input type="radio" id="exportCurrent" name="exportType" value="current">
+                        <label for="exportCurrent">
+                            <div class="option-icon">
+                                <i class="fas fa-file-alt"></i>
+                            </div>
+                            <div class="option-info">
+                                <h5>التقرير الحالي</h5>
+                                <p>تصدير التقرير المعروض فقط</p>
+                            </div>
+                        </label>
+                    </div>
+                    
+                    <div class="export-option">
+                        <input type="radio" id="exportCustom" name="exportType" value="custom">
+                        <label for="exportCustom">
+                            <div class="option-icon">
+                                <i class="fas fa-cogs"></i>
+                            </div>
+                            <div class="option-info">
+                                <h5>مخصص</h5>
+                                <p>اختيار تقارير محددة للتصدير</p>
+                            </div>
+                        </label>
+                    </div>
+                </div>
+                
+                <div class="export-format">
+                    <h4>صيغة التصدير</h4>
+                    <div class="format-buttons">
+                        <button class="format-btn active" data-format="pdf">
+                            <i class="fas fa-file-pdf"></i> PDF
+                        </button>
+                        <button class="format-btn" data-format="excel">
+                            <i class="fas fa-file-excel"></i> Excel
+                        </button>
+                        <button class="format-btn" data-format="csv">
+                            <i class="fas fa-file-csv"></i> CSV
+                        </button>
+                        <button class="format-btn" data-format="json">
+                            <i class="fas fa-file-code"></i> JSON
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="export-settings">
+                    <h4>إعدادات التصدير</h4>
+                    <div class="settings-grid">
+                        <div class="setting">
+                            <label>
+                                <input type="checkbox" id="includeCharts" checked>
+                                تضمين الرسوم البيانية
+                            </label>
+                        </div>
+                        <div class="setting">
+                            <label>
+                                <input type="checkbox" id="includeData" checked>
+                                تضمين البيانات التفصيلية
+                            </label>
+                        </div>
+                        <div class="setting">
+                            <label>
+                                <input type="checkbox" id="compressFile">
+                                ضغط الملفات
+                            </label>
+                        </div>
+                        <div class="setting">
+                            <label>
+                                <input type="checkbox" id="sendEmail">
+                                إرسال بالبريد الإلكتروني
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-export" onclick="startExport()">
+                    <i class="fas fa-download"></i> بدء التصدير
+                </button>
+                <button class="btn-cancel" onclick="closeExportModal()">إلغاء</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- التذييل -->
+    <footer class="footer">
+        <div class="footer-content">
+            <div class="footer-left">
+                <p>© 2024 نظام تسجيل السفن - ميناء الحديدة. جميع الحقوق محفوظة.</p>
+            </div>
+            <div class="footer-right">
+                <p>التقارير والإحصائيات | الإصدار 2.1.0 | آخر تحديث: <span id="lastUpdateTime"></span></p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- الرسائل العائمة -->
+    <div id="toast" class="toast"></div>
+
+    <script src="../js/main.js"></script>
+    <script src="../js/dashboard-functions.js"></script>
+    <script src="../js/charts.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0"></script>
+    <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
+    <script src="https://cdn.datatables.net/buttons/2.4.1/js/dataTables.buttons.min.js"></script>
+    <script src="https://cdn.datatables.net/buttons/2.4.1/js/buttons.bootstrap5.min.js"></script>
+    <script src="https://cdn.datatables.net/buttons/2.4.1/js/buttons.html5.min.js"></script>
+    <script src="https://cdn.datatables.net/buttons/2.4.1/js/buttons.print.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.4/moment.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.min.js"></script>
+    
+    <script>
+        // تهيئة الصفحة
+        document.addEventListener('DOMContentLoaded', function() {
+            initializePage();
+            setupEventListeners();
+            loadInitialData();
+            initializeCharts();
+            updateLastUpdateTime();
+            
+            // بدء التحديث التلقائي
+            startAutoRefresh();
+        });
+        
+        // تهيئة الصفحة
+        function initializePage() {
+            // تهيئة منتقي الفترة الزمنية
+            $('#reportDateRange').daterangepicker({
+                locale: {
+                    format: 'YYYY-MM-DD',
+                    separator: ' إلى ',
+                    applyLabel: 'تطبيق',
+                    cancelLabel: 'إلغاء',
+                    daysOfWeek: ['أح', 'إث', 'ث', 'أر', 'خ', 'ج', 'س'],
+                    monthNames: ['يناير', 'فبراير', 'مارس', 'أبريل', 'مايو', 'يونيو',
+                                'يوليو', 'أغسطس', 'سبتمبر', 'أكتوبر', 'نوفمبر', 'ديسمبر']
+                },
+                startDate: moment().subtract(30, 'days'),
+                endDate: moment(),
+                ranges: {
+                    'اليوم': [moment(), moment()],
+                    'أمس': [moment().subtract(1, 'days'), moment().subtract(1, 'days')],
+                    'آخر 7 أيام': [moment().subtract(6, 'days'), moment()],
+                    'آخر 30 يوم': [moment().subtract(29, 'days'), moment()],
+                    'هذا الشهر': [moment().startOf('month'), moment().endOf('month')],
+                    'الشهر الماضي': [moment().subtract(1, 'month').startOf('month'), 
+                                   moment().subtract(1, 'month').endOf('month')]
+                }
+            });
+            
+            // تحديث عرض الفترة الحالية
+            updateCurrentPeriodDisplay();
+        }
+        
+        // إعداد مستمعات الأحداث
+        function setupEventListeners() {
+            // تغيير الفترة الزمنية
+            $('#reportDateRange').on('apply.daterangepicker', function(ev, picker) {
+                applyDateRange();
+            });
+            
+            // تحديث الحقول المخصصة للتقارير
+            updateReportFields();
+            
+            // تغيير نطاق التقرير
+            document.querySelectorAll('input[name="reportScope"]').forEach(radio => {
+                radio.addEventListener('change', updateReportFields);
+            });
+        }
+        
+        // تحميل البيانات الأولية
+        function loadInitialData() {
+            // تحميل بيانات السفن
+            loadShipsData();
+            
+            // تحميل البيانات المالية
+            loadFinancialData();
+            
+            // تحميل بيانات الموظفين
+            loadEmployeesData();
+        }
+        
+        // تحديث وقت آخر تحديث
+        function updateLastUpdateTime() {
+            const now = new Date();
+            const timeString = now.toLocaleString('ar-YE', {
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit'
+            });
+            document.getElementById('lastUpdateTime').textContent = timeString;
+        }
+        
+        // بدء التحديث التلقائي
+        function startAutoRefresh() {
+            // تحديث البيانات كل 5 دقائق
+            setInterval(() => {
+                refreshReports();
+                updateLastUpdateTime();
+            }, 5 * 60 * 1000);
+        }
+        
+        // عرض تبويب التقرير
+        function showReportTab(tabName) {
+            // إخفاء جميع التبويبات
+            document.querySelectorAll('.report-tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            // إزالة النشط من جميع عناصر القائمة
+            document.querySelectorAll('.sidebar-menu li').forEach(item => {
+                item.classList.remove('active');
+            });
+            
+            // إضافة النشط للتبويب والعنصر المحدد
+            document.getElementById(`${tabName}-tab`).classList.add('active');
+            
+            // تحديث القائمة الجانبية
+            const menuItems = {
+                'overview': 0,
+                'ship-reports': 1,
+                'financial-reports': 2,
+                'employee-reports': 3,
+                'branch-reports': 4,
+                'performance-reports': 5,
+                'custom-reports': 6,
+                'archive': 7
+            };
+            
+            if (menuItems[tabName] !== undefined) {
+                document.querySelectorAll('.sidebar-menu li')[menuItems[tabName]].classList.add('active');
+            }
+            
+            // تحديث الرسوم البيانية للتبويب النشط
+            setTimeout(() => {
+                updateChartsForTab(tabName);
+            }, 100);
+        }
+        
+        // تحديث الرسوم البيانية للتبويب
+        function updateChartsForTab(tabName) {
+            switch(tabName) {
+                case 'overview':
+                    updateOverviewCharts();
+                    break;
+                case 'ship-reports':
+                    updateShipCharts();
+                    break;
+                case 'financial-reports':
+                    updateFinancialCharts();
+                    break;
+                case 'employee-reports':
+                    updateEmployeeCharts();
+                    break;
+            }
+        }
+        
+        // تطبيق الفترة الزمنية
+        function applyDateRange() {
+            const range = $('#reportDateRange').data('daterangepicker');
+            const startDate = range.startDate.format('YYYY-MM-DD');
+            const endDate = range.endDate.format('YYYY-MM-DD');
+            
+            showToast(`تم تطبيق الفترة من ${startDate} إلى ${endDate}`, 'success');
+            updateCurrentPeriodDisplay();
+            
+            // تحديث البيانات بناءً على الفترة
+            refreshReportData();
+        }
+        
+        // تحديث عرض الفترة الحالية
+        function updateCurrentPeriodDisplay() {
+            const range = $('#reportDateRange').data('daterangepicker');
+            const startDate = range.startDate.format('YYYY-MM-DD');
+            const endDate = range.endDate.format('YYYY-MM-DD');
+            
+            document.getElementById('currentPeriod').textContent = 
+                `${startDate} - ${endDate}`;
+        }
+        
+        // تحديث بيانات التقارير
+        function refreshReportData() {
+            // محاكاة تحديث البيانات
+            showToast('جاري تحديث بيانات التقارير...', 'info');
+            
+            setTimeout(() => {
+                // تحديث الرسوم البيانية
+                updateAllCharts();
+                
+                // تحديث الجداول
+                refreshDataTables();
+                
+                showToast('تم تحديث بيانات التقارير', 'success');
+            }, 1000);
+        }
+        
+        // تحديث جميع الرسوم البيانية
+        function updateAllCharts() {
+            // تحديث رسوم النظرة العامة
+            updateOverviewCharts();
+            
+            // تحديث رسوم السفن
+            updateShipCharts();
+            
+            // تحديث الرسوم المالية
+            updateFinancialCharts();
+            
+            // تحديث رسوم الموظفين
+            updateEmployeeCharts();
+        }
+        
+        // تحديث الرسوم البيانية للنظرة العامة
+        function updateOverviewCharts() {
+            // تحديث مخطط التسجيل الشهري
+            updateRegistrationsChart();
+            
+            // تحديث مخطط أنواع السفن
+            updateShipTypesChart();
+            
+            // تحديث الرسوم البيانية المصغرة
+            updateMiniCharts();
+        }
+        
+        // تحديث مخطط التسجيل الشهري
+        function updateRegistrationsChart() {
+            const ctx = document.getElementById('registrationsChart').getContext('2d');
+            const chartType = document.getElementById('chartType').value;
+            
+            let labels, data;
+            
+            switch(chartType) {
+                case 'monthly':
+                    labels = ['يناير', 'فبراير', 'مارس', 'أبريل', 'مايو', 'يونيو', 'يوليو', 'أغسطس', 'سبتمبر', 'أكتوبر', 'نوفمبر', 'ديسمبر'];
+                    data = [85, 92, 78, 95, 88, 84, 90, 96, 102, 98, 105, 110];
+                    break;
+                case 'quarterly':
+                    labels = ['الربع الأول', 'الربع الثاني', 'الربع الثالث', 'الربع الرابع'];
+                    data = [255, 267, 292, 313];
+                    break;
+                case 'yearly':
+                    labels = ['2020', '2021', '2022', '2023', '2024'];
+                    data = [850, 920, 1050, 1120, 1248];
+                    break;
+            }
+            
+            // إذا كان الرسم البياني موجوداً، قم بتحديثه
+            if (window.registrationsChart) {
+                window.registrationsChart.data.labels = labels;
+                window.registrationsChart.data.datasets[0].data = data;
+                window.registrationsChart.update();
+            } else {
+                // إنشاء رسم بياني جديد
+                window.registrationsChart = new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: labels,
+                        datasets: [{
+                            label: 'عدد السفن المسجلة',
+                            data: data,
+                            borderColor: '#3498db',
+                            backgroundColor: 'rgba(52, 152, 219, 0.1)',
+                            borderWidth: 3,
+                            fill: true,
+                            tension: 0.4
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                display: true,
+                                position: 'top',
+                                rtl: true
+                            },
+                            tooltip: {
+                                mode: 'index',
+                                intersect: false,
+                                rtl: true
+                            }
+                        },
+                        scales: {
+                            x: {
+                                grid: {
+                                    display: false
+                                }
+                            },
+                            y: {
+                                beginAtZero: true,
+                                ticks: {
+                                    stepSize: 20
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+        }
+        
+        // تحديث مخطط أنواع السفن
+        function updateShipTypesChart() {
+            const ctx = document.getElementById('shipTypesChart').getContext('2d');
+            
+            if (window.shipTypesChart) {
+                window.shipTypesChart.update();
+            } else {
+                window.shipTypesChart = new Chart(ctx, {
+                    type: 'doughnut',
+                    data: {
+                        labels: ['سفن شحن', 'ناقلات نفط', 'سفن ركاب', 'سفن صيد'],
+                        datasets: [{
+                            data: [45, 25, 18, 12],
+                            backgroundColor: ['#4CAF50', '#2196F3', '#FF9800', '#9C27B0'],
+                            borderWidth: 2,
+                            borderColor: '#fff'
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                display: false
+                            },
+                            tooltip: {
+                                callbacks: {
+                                    label: function(context) {
+                                        const label = context.label || '';
+                                        const value = context.raw || 0;
+                                        return `${label}: ${value}%`;
+                                    }
+                                }
+                            }
+                        },
+                        cutout: '70%'
+                    }
+                });
+            }
+        }
+        
+        // تحديث الرسوم البيانية المصغرة
+        function updateMiniCharts() {
+            // مخطط السفن المصغر
+            updateMiniChart('shipsChart', [45, 52, 48, 60, 58, 65], '#4CAF50');
+            
+            // مخطط الإيرادات المصغر
+            updateMiniChart('revenueChart', [280, 295, 310, 325, 340, 355], '#2196F3');
+            
+            // مخطط الطلبات المصغر
+            updateMiniChart('requestsChart', [42, 38, 45, 40, 36, 42], '#FF9800');
+            
+            // مخطط الأداء المصغر
+            updateMiniChart('performanceChart', [82, 85, 84, 87, 86, 88], '#9C27B0');
+        }
+        
+        // تحديث مخطط مصغر
+        function updateMiniChart(canvasId, data, color) {
+            const ctx = document.getElementById(canvasId).getContext('2d');
+            
+            // إذا كان المخطط موجوداً، قم بإزالته
+            if (window[`${canvasId}Chart`]) {
+                window[`${canvasId}Chart`].destroy();
+            }
+            
+            // إنشاء مخطط جديد
+            window[`${canvasId}Chart`] = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: ['', '', '', '', '', ''],
+                    datasets: [{
+                        data: data,
+                        borderColor: color,
+                        backgroundColor: color + '20',
+                        borderWidth: 2,
+                        fill: true,
+                        tension: 0.4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        tooltip: {
+                            enabled: false
+                        }
+                    },
+                    scales: {
+                        x: {
+                            display: false
+                        },
+                        y: {
+                            display: false
+                        }
+                    },
+                    elements: {
+                        point: {
+                            radius: 0
+                        }
+                    }
+                }
+            });
+        }
+        
+        // تحديث مخططات السفن
+        function updateShipCharts() {
+            // توزيع السفن حسب النوع
+            updateShipDistributionChart();
+            
+            // السفن حسب الحجم
+            updateShipSizeChart();
+        }
+        
+        // تحديث مخطط توزيع السفن
+        function updateShipDistributionChart() {
+            const ctx = document.getElementById('shipDistributionChart').getContext('2d');
+            
+            if (window.shipDistributionChart) {
+                window.shipDistributionChart.update();
+            } else {
+                window.shipDistributionChart = new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: ['سفن شحن', 'ناقلات نفط', 'سفن ركاب', 'سفن صيد', 'سفن حاويات'],
+                        datasets: [{
+                            label: 'عدد السفن',
+                            data: [560, 312, 225, 150, 150],
+                            backgroundColor: ['#4CAF50', '#2196F3', '#FF9800', '#9C27B0', '#607D8B'],
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                display: false
+                            }
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                ticks: {
+                                    stepSize: 100
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+        }
+        
+        // تحديث مخطط حجم السفن
+        function updateShipSizeChart() {
+            const ctx = document.getElementById('shipSizeChart').getContext('2d');
+            
+            if (window.shipSizeChart) {
+                window.shipSizeChart.update();
+            } else {
+                window.shipSizeChart = new Chart(ctx, {
+                    type: 'pie',
+                    data: {
+                        labels: ['صغيرة (<1000 طن)', 'متوسطة (1000-10000 طن)', 'كبيرة (>10000 طن)'],
+                        datasets: [{
+                            data: [45, 35, 20],
+                            backgroundColor: ['#4CAF50', '#2196F3', '#FF9800'],
+                            borderWidth: 2,
+                            borderColor: '#fff'
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                position: 'bottom',
+                                rtl: true
+                            }
+                        }
+                    }
+                });
+            }
+        }
+        
+        // تحديث الرسوم المالية
+        function updateFinancialCharts() {
+            // مخطط تحليل الإيرادات
+            updateRevenueAnalysisChart();
+            
+            // مخطط الإيرادات حسب النوع
+            updateRevenueByTypeChart();
+        }
+        
+        // تحديث مخطط تحليل الإيرادات
+        function updateRevenueAnalysisChart() {
+            const ctx = document.getElementById('revenueAnalysisChart').getContext('2d');
+            const period = document.getElementById('revenuePeriod').value;
+            
+            let labels, data;
+            
+            switch(period) {
+                case 'monthly':
+                    labels = ['يناير', 'فبراير', 'مارس', 'أبريل', 'مايو', 'يونيو'];
+                    data = [280000, 295000, 310000, 325000, 340000, 355000];
+                    break;
+                case 'quarterly':
+                    labels = ['الربع الأول', 'الربع الثاني', 'الربع الثالث', 'الربع الرابع'];
+                    data = [885000, 980000, 1020000, 1100000];
+                    break;
+                case 'yearly':
+                    labels = ['2020', '2021', '2022', '2023', '2024'];
+                    data = [2850000, 3200000, 3850000, 4250000, 4850000];
+                    break;
+            }
+            
+            if (window.revenueAnalysisChart) {
+                window.revenueAnalysisChart.data.labels = labels;
+                window.revenueAnalysisChart.data.datasets[0].data = data;
+                window.revenueAnalysisChart.update();
+            } else {
+                window.revenueAnalysisChart = new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: labels,
+                        datasets: [{
+                            label: 'الإيرادات (ريال)',
+                            data: data,
+                            backgroundColor: '#4CAF50',
+                            borderColor: '#388E3C',
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                display: false
+                            }
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                ticks: {
+                                    callback: function(value) {
+                                        return value.toLocaleString('ar-YE') + ' ريال';
+                                    }
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+        }
+        
+        // تحديث مخطط الإيرادات حسب النوع
+        function updateRevenueByTypeChart() {
+            const ctx = document.getElementById('revenueByTypeChart').getContext('2d');
+            
+            if (window.revenueByTypeChart) {
+                window.revenueByTypeChart.update();
+            } else {
+                window.revenueByTypeChart = new Chart(ctx, {
+                    type: 'doughnut',
+                    data: {
+                        labels: ['رسوم التسجيل', 'رسوم التجديد', 'الغرامات', 'خدمات إضافية'],
+                        datasets: [{
+                            data: [185, 98, 32, 10],
+                            backgroundColor: ['#4CAF50', '#2196F3', '#FF9800', '#9C27B0'],
+                            borderWidth: 2,
+                            borderColor: '#fff'
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                position: 'bottom',
+                                rtl: true
+                            },
+                            tooltip: {
+                                callbacks: {
+                                    label: function(context) {
+                                        const label = context.label || '';
+                                        const value = context.raw || 0;
+                                        const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                        const percentage = Math.round((value / total) * 100);
+                                        return `${label}: ${value} ألف ريال (${percentage}%)`;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+        }
+        
+        // تحديث رسوم الموظفين
+        function updateEmployeeCharts() {
+            // مخطط أداء الموظفين
+            updateEmployeePerformanceChart();
+            
+            // مخطط نشاط الموظفين
+            updateEmployeeActivityChart();
+        }
+        
+        // تحديث مخطط أداء الموظفين
+        function updateEmployeePerformanceChart() {
+            const ctx = document.getElementById('employeePerformanceChart').getContext('2d');
+            
+            if (window.employeePerformanceChart) {
+                window.employeePerformanceChart.update();
+            } else {
+                window.employeePerformanceChart = new Chart(ctx, {
+                    type: 'radar',
+                    data: {
+                        labels: ['سرعة المعالجة', 'الدقة', 'الإنتاجية', 'التعاون', 'الإبداع', 'الالتزام'],
+                        datasets: [
+                            {
+                                label: 'متوسط القسم',
+                                data: [75, 80, 70, 85, 65, 90],
+                                backgroundColor: 'rgba(52, 152, 219, 0.2)',
+                                borderColor: 'rgba(52, 152, 219, 1)',
+                                borderWidth: 2
+                            },
+                            {
+                                label: 'أفضل أداء',
+                                data: [95, 92, 88, 90, 85, 94],
+                                backgroundColor: 'rgba(76, 175, 80, 0.2)',
+                                borderColor: 'rgba(76, 175, 80, 1)',
+                                borderWidth: 2
+                            }
+                        ]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                position: 'top',
+                                rtl: true
+                            }
+                        },
+                        scales: {
+                            r: {
+                                angleLines: {
+                                    display: true
+                                },
+                                suggestedMin: 0,
+                                suggestedMax: 100,
+                                ticks: {
+                                    stepSize: 20
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+        }
+        
+        // تحديث مخطط نشاط الموظفين
+        function updateEmployeeActivityChart() {
+            const ctx = document.getElementById('employeeActivityChart').getContext('2d');
+            
+            if (window.employeeActivityChart) {
+                window.employeeActivityChart.update();
+            } else {
+                window.employeeActivityChart = new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: ['الأسبوع 1', 'الأسبوع 2', 'الأسبوع 3', 'الأسبوع 4'],
+                        datasets: [
+                            {
+                                label: 'عدد الطلبات',
+                                data: [85, 92, 78, 95],
+                                borderColor: '#4CAF50',
+                                backgroundColor: 'rgba(76, 175, 80, 0.1)',
+                                borderWidth: 3,
+                                fill: true,
+                                tension: 0.4,
+                                yAxisID: 'y'
+                            },
+                            {
+                                label: 'متوسط الوقت (أيام)',
+                                data: [2.5, 2.0, 1.8, 1.5],
+                                borderColor: '#FF9800',
+                                backgroundColor: 'rgba(255, 152, 0, 0.1)',
+                                borderWidth: 3,
+                                fill: true,
+                                tension: 0.4,
+                                yAxisID: 'y1'
+                            }
+                        ]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                position: 'top',
+                                rtl: true
+                            }
+                        },
+                        scales: {
+                            y: {
+                                type: 'linear',
+                                display: true,
+                                position: 'left',
+                                title: {
+                                    display: true,
+                                    text: 'عدد الطلبات'
+                                }
+                            },
+                            y1: {
+                                type: 'linear',
+                                display: true,
+                                position: 'right',
+                                title: {
+                                    display: true,
+                                    text: 'متوسط الوقت (أيام)'
+                                },
+                                grid: {
+                                    drawOnChartArea: false
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+        }
+        
+        // تهيئة جميع الرسوم البيانية
+        function initializeCharts() {
+            updateOverviewCharts();
+            updateShipCharts();
+            updateFinancialCharts();
+            updateEmployeeCharts();
+        }
+        
+        // تحميل بيانات السفن
+        function loadShipsData() {
+            const ships = [
+                {
+                    registrationNumber: 'SHIP-2024-001',
+                    name: 'البحر الأحمر',
+                    type: 'سفينة شحن',
+                    tonnage: '12,500',
+                    owner: 'شركة الشحن الوطنية',
+                    registrationDate: '2024-01-15',
+                    expiryDate: '2025-01-15',
+                    branch: 'ميناء الحديدة',
+                    status: 'نشط'
+                },
+                {
+                    registrationNumber: 'SHIP-2024-002',
+                    name: 'النفطية 1',
+                    type: 'ناقلة نفط',
+                    tonnage: '45,000',
+                    owner: 'شركة النفط اليمنية',
+                    registrationDate: '2024-02-20',
+                    expiryDate: '2025-02-20',
+                    branch: 'ميناء عدن',
+                    status: 'نشط'
+                },
+                {
+                    registrationNumber: 'SHIP-2024-003',
+                    name: 'اليمن السعيد',
+                    type: 'سفينة ركاب',
+                    tonnage: '8,500',
+                    owner: 'شركة النقل البحري',
+                    registrationDate: '2024-03-10',
+                    expiryDate: '2025-03-10',
+                    branch: 'ميناء الحديدة',
+                    status: 'نشط'
+                },
+                {
+                    registrationNumber: 'SHIP-2023-045',
+                    name: 'صياد البحر',
+                    type: 'سفينة صيد',
+                    tonnage: '850',
+                    owner: 'تعاونية الصيادين',
+                    registrationDate: '2023-06-15',
+                    expiryDate: '2024-06-15',
+                    branch: 'ميناء الصليف',
+                    status: 'تحت التجديد'
+                },
+                {
+                    registrationNumber: 'SHIP-2022-128',
+                    name: 'الشحن السريع',
+                    type: 'سفينة حاويات',
+                    tonnage: '25,000',
+                    owner: 'أحمد علي الشركة',
+                    registrationDate: '2022-11-05',
+                    expiryDate: '2023-11-05',
+                    branch: 'ميناء المكلا',
+                    status: 'منتهي'
+                }
+            ];
+            
+            const tbody = document.querySelector('#shipsTable tbody');
+            tbody.innerHTML = '';
+            
+            ships.forEach(ship => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${ship.registrationNumber}</td>
+                    <td>${ship.name}</td>
+                    <td><span class="ship-type ${ship.type.includes('شحن') ? 'cargo' : 
+                                          ship.type.includes('نفط') ? 'tanker' : 
+                                          ship.type.includes('ركاب') ? 'passenger' : 
+                                          ship.type.includes('صيد') ? 'fishing' : 'container'}">${ship.type}</span></td>
+                    <td>${ship.tonnage}</td>
+                    <td>${ship.owner}</td>
+                    <td>${ship.registrationDate}</td>
+                    <td>${ship.expiryDate}</td>
+                    <td>${ship.branch}</td>
+                    <td><span class="status-badge ${getStatusClass(ship.status)}">${ship.status}</span></td>
+                `;
+                tbody.appendChild(row);
+            });
+            
+            // تهيئة DataTable
+            if (!$.fn.DataTable.isDataTable('#shipsTable')) {
+                $('#shipsTable').DataTable({
+                    language: {
+                        url: '//cdn.datatables.net/plug-ins/1.13.6/i18n/ar.json'
+                    },
+                    pageLength: 10,
+                    responsive: true
+                });
+            }
+        }
+        
+        // تحميل البيانات المالية
+        function loadFinancialData() {
+            const transactions = [
+                {
+                    transactionId: 'TRX-2024-001',
+                    date: '2024-03-15',
+                    type: 'رسوم تسجيل',
+                    amount: '15,000',
+                    shipNumber: 'SHIP-2024-001',
+                    payer: 'شركة الشحن الوطنية',
+                    paymentMethod: 'تحويل بنكي',
+                    status: 'مكتمل',
+                    branch: 'ميناء الحديدة'
+                },
+                {
+                    transactionId: 'TRX-2024-002',
+                    date: '2024-03-14',
+                    type: 'رسوم تجديد',
+                    amount: '8,000',
+                    shipNumber: 'SHIP-2023-045',
+                    payer: 'تعاونية الصيادين',
+                    paymentMethod: 'نقدي',
+                    status: 'مكتمل',
+                    branch: 'ميناء الصليف'
+                },
+                {
+                    transactionId: 'TRX-2024-003',
+                    date: '2024-03-13',
+                    type: 'غرامة',
+                    amount: '5,000',
+                    shipNumber: 'SHIP-2022-128',
+                    payer: 'أحمد علي الشركة',
+                    paymentMethod: 'بطاقة ائتمان',
+                    status: 'معلق',
+                    branch: 'ميناء المكلا'
+                },
+                {
+                    transactionId: 'TRX-2024-004',
+                    date: '2024-03-12',
+                    type: 'رسوم خدمات',
+                    amount: '2,500',
+                    shipNumber: 'SHIP-2024-003',
+                    payer: 'شركة النقل البحري',
+                    paymentMethod: 'تحويل بنكي',
+                    status: 'مكتمل',
+                    branch: 'ميناء الحديدة'
+                }
+            ];
+            
+            const tbody = document.querySelector('#financialTable tbody');
+            tbody.innerHTML = '';
+            
+            transactions.forEach(transaction => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${transaction.transactionId}</td>
+                    <td>${transaction.date}</td>
+                    <td><span class="transaction-type ${transaction.type}">${transaction.type}</span></td>
+                    <td>${transaction.amount} ريال</td>
+                    <td>${transaction.shipNumber}</td>
+                    <td>${transaction.payer}</td>
+                    <td>${transaction.paymentMethod}</td>
+                    <td><span class="status-badge ${getStatusClass(transaction.status)}">${transaction.status}</span></td>
+                    <td>${transaction.branch}</td>
+                `;
+                tbody.appendChild(row);
+            });
+            
+            // تهيئة DataTable
+            if (!$.fn.DataTable.isDataTable('#financialTable')) {
+                $('#financialTable').DataTable({
+                    language: {
+                        url: '//cdn.datatables.net/plug-ins/1.13.6/i18n/ar.json'
+                    },
+                    pageLength: 10,
+                    responsive: true
+                });
+            }
+        }
+        
+        // تحميل بيانات الموظفين
+        function loadEmployeesData() {
+            const employees = [
+                {
+                    name: 'أحمد محمد',
+                    department: 'استقبال الطلبات',
+                    branch: 'ميناء الحديدة',
+                    requestsCount: 156,
+                    completionRate: '94%',
+                    avgTime: '1.2 يوم',
+                    accuracy: '98%',
+                    satisfaction: '96%',
+                    rating: 'ممتاز'
+                },
+                {
+                    name: 'سالم عبدالله',
+                    department: 'مراجعة المستندات',
+                    branch: 'ميناء عدن',
+                    requestsCount: 142,
+                    completionRate: '91%',
+                    avgTime: '1.5 يوم',
+                    accuracy: '96%',
+                    satisfaction: '94%',
+                    rating: 'ممتاز'
+                },
+                {
+                    name: 'فاطمة علي',
+                    department: 'التسجيل',
+                    branch: 'ميناء المكلا',
+                    requestsCount: 128,
+                    completionRate: '88%',
+                    avgTime: '1.8 يوم',
+                    accuracy: '95%',
+                    satisfaction: '92%',
+                    rating: 'جيد جداً'
+                },
+                {
+                    name: 'محمد حسين',
+                    department: 'المالية',
+                    branch: 'ميناء الحديدة',
+                    requestsCount: 95,
+                    completionRate: '85%',
+                    avgTime: '2.1 يوم',
+                    accuracy: '92%',
+                    satisfaction: '90%',
+                    rating: 'جيد'
+                }
+            ];
+            
+            const tbody = document.querySelector('#employeeReportTable tbody');
+            tbody.innerHTML = '';
+            
+            employees.forEach(employee => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${employee.name}</td>
+                    <td>${employee.department}</td>
+                    <td>${employee.branch}</td>
+                    <td>${employee.requestsCount}</td>
+                    <td><span class="rate ${getRateClass(employee.completionRate)}">${employee.completionRate}</span></td>
+                    <td>${employee.avgTime}</td>
+                    <td><span class="rate ${getRateClass(employee.accuracy)}">${employee.accuracy}</span></td>
+                    <td><span class="rate ${getRateClass(employee.satisfaction)}">${employee.satisfaction}</span></td>
+                    <td><span class="rating ${employee.rating}">${employee.rating}</span></td>
+                `;
+                tbody.appendChild(row);
+            });
+            
+            // تهيئة DataTable
+            if (!$.fn.DataTable.isDataTable('#employeeReportTable')) {
+                $('#employeeReportTable').DataTable({
+                    language: {
+                        url: '//cdn.datatables.net/plug-ins/1.13.6/i18n/ar.json'
+                    },
+                    pageLength: 10,
+                    responsive: true
+                });
+            }
+        }
+        
+        // الحصول على فئة الحالة
+        function getStatusClass(status) {
+            const classes = {
+                'نشط': 'success',
+                'مكتمل': 'success',
+                'تحت التجديد': 'warning',
+                'معلق': 'warning',
+                'منتهي': 'danger',
+                'موقوف': 'danger'
+            };
+            return classes[status] || 'secondary';
+        }
+        
+        // الحصول على فئة المعدل
+        function getRateClass(rate) {
+            const numericRate = parseInt(rate);
+            if (numericRate >= 90) return 'high';
+            if (numericRate >= 80) return 'medium';
+            return 'low';
+        }
+        
+        // تحديث الجداول
+        function refreshDataTables() {
+            const tables = ['#shipsTable', '#financialTable', '#employeeReportTable'];
+            tables.forEach(tableId => {
+                const table = $(tableId).DataTable();
+                if (table) {
+                    table.ajax.reload();
+                }
+            });
+        }
+        
+        // تحديث الحقول المخصصة
+        function updateReportFields() {
+            const scope = document.querySelector('input[name="reportScope"]:checked').value;
+            const fieldsContainer = document.getElementById('reportFields');
+            fieldsContainer.innerHTML = '';
+            
+            let fields = [];
+            
+            switch(scope) {
+                case 'ships':
+                    fields = [
+                        { id: 'ship_name', label: 'اسم السفينة' },
+                        { id: 'ship_type', label: 'نوع السفينة' },
+                        { id: 'registration_number', label: 'رقم التسجيل' },
+                        { id: 'owner_name', label: 'اسم المالك' },
+                        { id: 'tonnage', label: 'الحمولة' },
+                        { id: 'registration_date', label: 'تاريخ التسجيل' },
+                        { id: 'expiry_date', label: 'تاريخ الانتهاء' },
+                        { id: 'status', label: 'حالة التسجيل' },
+                        { id: 'branch', label: 'الفرع' }
+                    ];
+                    break;
+                    
+                case 'financial':
+                    fields = [
+                        { id: 'transaction_id', label: 'رقم المعاملة' },
+                        { id: 'transaction_date', label: 'تاريخ المعاملة' },
+                        { id: 'transaction_type', label: 'نوع المعاملة' },
+                        { id: 'amount', label: 'المبلغ' },
+                        { id: 'ship_number', label: 'رقم السفينة' },
+                        { id: 'payer_name', label: 'اسم الدافع' },
+                        { id: 'payment_method', label: 'طريقة الدفع' },
+                        { id: 'status', label: 'حالة الدفع' },
+                        { id: 'branch', label: 'الفرع' }
+                    ];
+                    break;
+                    
+                case 'employees':
+                    fields = [
+                        { id: 'employee_name', label: 'اسم الموظف' },
+                        { id: 'employee_id', label: 'رقم الموظف' },
+                        { id: 'department', label: 'القسم' },
+                        { id: 'branch', label: 'الفرع' },
+                        { id: 'requests_count', label: 'عدد الطلبات' },
+                        { id: 'completion_rate', label: 'معدل الإنجاز' },
+                        { id: 'avg_time', label: 'متوسط الوقت' },
+                        { id: 'accuracy', label: 'الدقة' },
+                        { id: 'satisfaction', label: 'رضا العملاء' }
+                    ];
+                    break;
+                    
+                case 'branches':
+                    fields = [
+                        { id: 'branch_name', label: 'اسم الفرع' },
+                        { id: 'total_ships', label: 'إجمالي السفن' },
+                        { id: 'active_ships', label: 'السفن النشطة' },
+                        { id: 'pending_ships', label: 'السفن قيد المراجعة' },
+                        { id: 'revenue', label: 'الإيرادات' },
+                        { id: 'growth_rate', label: 'معدل النمو' },
+                        { id: 'employee_count', label: 'عدد الموظفين' },
+                        { id: 'efficiency', label: 'كفاءة الفرع' }
+                    ];
+                    break;
+            }
+            
+            fields.forEach(field => {
+                const fieldElement = document.createElement('div');
+                fieldElement.className = 'field-item';
+                fieldElement.innerHTML = `
+                    <label>
+                        <input type="checkbox" name="fields[]" value="${field.id}" checked>
+                        <span>${field.label}</span>
+                    </label>
+                `;
+                fieldsContainer.appendChild(fieldElement);
+            });
+        }
+        
+        // معاينة التقرير المخصص
+        function previewCustomReport() {
+            const scope = document.querySelector('input[name="reportScope"]:checked').value;
+            const previewContainer = document.getElementById('reportPreview');
+            
+            let previewHTML = '';
+            
+            switch(scope) {
+                case 'ships':
+                    previewHTML = `
+                        <div class="preview-report">
+                            <div class="preview-header">
+                                <h4>تقرير السفن المسجلة</h4>
+                                <p>الفترة: آخر 30 يوم</p>
+                            </div>
+                            <div class="preview-stats">
+                                <div class="preview-stat">
+                                    <span class="stat-label">إجمالي السفن:</span>
+                                    <span class="stat-value">1,248 سفينة</span>
+                                </div>
+                                <div class="preview-stat">
+                                    <span class="stat-label">السفن الجديدة:</span>
+                                    <span class="stat-value">84 سفينة</span>
+                                </div>
+                                <div class="preview-stat">
+                                    <span class="stat-label">معدل النمو:</span>
+                                    <span class="stat-value">+12%</span>
+                                </div>
+                            </div>
+                            <div class="preview-table">
+                                <table>
+                                    <thead>
+                                        <tr>
+                                            <th>رقم التسجيل</th>
+                                            <th>اسم السفينة</th>
+                                            <th>النوع</th>
+                                            <th>حالة التسجيل</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td>SHIP-2024-001</td>
+                                            <td>البحر الأحمر</td>
+                                            <td>سفينة شحن</td>
+                                            <td>نشط</td>
+                                        </tr>
+                                        <tr>
+                                            <td>SHIP-2024-002</td>
+                                            <td>النفطية 1</td>
+                                            <td>ناقلة نفط</td>
+                                            <td>نشط</td>
+                                        </tr>
+                                        <tr>
+                                            <td>SHIP-2024-003</td>
+                                            <td>اليمن السعيد</td>
+                                            <td>سفينة ركاب</td>
+                                            <td>نشط</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    `;
+                    break;
+                    
+                case 'financial':
+                    previewHTML = `
+                        <div class="preview-report">
+                            <div class="preview-header">
+                                <h4>التقرير المالي</h4>
+                                <p>الفترة: آخر 30 يوم</p>
+                            </div>
+                            <div class="preview-stats">
+                                <div class="preview-stat">
+                                    <span class="stat-label">إجمالي الإيرادات:</span>
+                                    <span class="stat-value">325,000 ريال</span>
+                                </div>
+                                <div class="preview-stat">
+                                    <span class="stat-label">المعاملات:</span>
+                                    <span class="stat-value">42 معاملة</span>
+                                </div>
+                                <div class="preview-stat">
+                                    <span class="stat-label">معدل التحصيل:</span>
+                                    <span class="stat-value">96%</span>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                    break;
+            }
+            
+            previewContainer.innerHTML = previewHTML;
+            showToast('تم إنشاء معاينة التقرير', 'success');
+        }
+        
+        // إنشاء تقرير مخصص
+        function generateCustomReport() {
+            const format = document.querySelector('input[name="reportFormat"]:checked').value;
+            const scope = document.querySelector('input[name="reportScope"]:checked').value;
+            
+            showToast(`جاري إنشاء التقرير بصيغة ${format.toUpperCase()}...`, 'info');
+            
+            setTimeout(() => {
+                // محاكاة إنشاء التقرير
+                let filename, mimeType;
+                
+                switch(format) {
+                    case 'pdf':
+                        filename = `تقرير_${scope}_${new Date().toISOString().split('T')[0]}.pdf`;
+                        mimeType = 'application/pdf';
+                        break;
+                    case 'excel':
+                        filename = `تقرير_${scope}_${new Date().toISOString().split('T')[0]}.xlsx`;
+                        mimeType = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
+                        break;
+                    case 'csv':
+                        filename = `تقرير_${scope}_${new Date().toISOString().split('T')[0]}.csv`;
+                        mimeType = 'text/csv';
+                        break;
+                    case 'html':
+                        filename = `تقرير_${scope}_${new Date().toISOString().split('T')[0]}.html`;
+                        mimeType = 'text/html';
+                        break;
+                }
+                
+                // محاكاة تنزيل الملف
+                const content = `تقرير ${scope} - تم إنشاؤه في ${new Date().toLocaleString('ar-YE')}`;
+                const blob = new Blob([content], { type: mimeType });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = filename;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+                
+                showToast(`تم إنشاء التقرير: ${filename}`, 'success');
+            }, 2000);
+        }
+        
+        // إعادة تعيين منشئ التقارير
+        function resetReportBuilder() {
+            document.querySelector('input[name="reportScope"][value="ships"]').checked = true;
+            document.querySelector('input[name="timePeriod"][value="custom"]').checked = true;
+            document.querySelector('input[name="reportFormat"][value="pdf"]').checked = true;
+            
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('startDate').value = today;
+            document.getElementById('endDate').value = today;
+            
+            updateReportFields();
+            document.getElementById('reportPreview').innerHTML = `
+                <div class="preview-placeholder">
+                    <i class="fas fa-chart-bar"></i>
+                    <p>ستظهر معاينة التقرير هنا بعد تحديد المعايير</p>
+                </div>
+            `;
+            
+            showToast('تم إعادة تعيين منشئ التقارير', 'info');
+        }
+        
+        // تطبيق فلاتر السفن
+        function applyShipFilters() {
+            const typeFilter = document.getElementById('shipTypeFilter').value;
+            const statusFilter = document.getElementById('registrationStatusFilter').value;
+            const tonnageFilter = document.getElementById('tonnageFilter').value;
+            
+            showToast('جاري تطبيق الفلاتر...', 'info');
+            
+            setTimeout(() => {
+                // هنا سيتم تطبيق الفلاتر على البيانات الحقيقية
+                showToast('تم تطبيق الفلاتر بنجاح', 'success');
+            }, 1000);
+        }
+        
+        // مسح فلاتر السفن
+        function clearShipFilters() {
+            document.getElementById('shipTypeFilter').value = 'all';
+            document.getElementById('registrationStatusFilter').value = 'all';
+            document.getElementById('tonnageFilter').value = 'all';
+            
+            showToast('تم مسح جميع الفلاتر', 'info');
+        }
+        
+        // تحديث التقارير
+        function refreshReports() {
+            showToast('جاري تحديث جميع التقارير...', 'info');
+            
+            setTimeout(() => {
+                loadInitialData();
+                updateAllCharts();
+                updateLastUpdateTime();
+                showToast('تم تحديث جميع التقارير بنجاح', 'success');
+            }, 1500);
+        }
+        
+        // تصدير جميع التقارير
+        function exportAllReports() {
+            document.getElementById('exportModal').style.display = 'block';
+        }
+        
+        // بدء التصدير
+        function startExport() {
+            const exportType = document.querySelector('input[name="exportType"]:checked').value;
+            const format = document.querySelector('.format-btn.active').dataset.format;
+            
+            showToast(`جاري تصدير التقارير بصيغة ${format.toUpperCase()}...`, 'info');
+            
+            setTimeout(() => {
+                // محاكاة التصدير
+                let filename = `تقارير_${new Date().toISOString().split('T')[0]}`;
+                
+                switch(format) {
+                    case 'pdf':
+                        filename += '.pdf';
+                        break;
+                    case 'excel':
+                        filename += '.xlsx';
+                        break;
+                    case 'csv':
+                        filename += '.zip';
+                        break;
+                    case 'json':
+                        filename += '.json';
+                        break;
+                }
+                
+                showToast(`تم تصدير التقارير: ${filename}`, 'success');
+                closeExportModal();
+            }, 2000);
+        }
+        
+        // إغلاق نافذة التصدير
+        function closeExportModal() {
+            document.getElementById('exportModal').style.display = 'none';
+        }
+        
+        // جدولة تقرير
+        function scheduleReport() {
+            document.getElementById('scheduleModal').style.display = 'block';
+        }
+        
+        // إغلاق نافذة الجدولة
+        function closeScheduleModal() {
+            document.getElementById('scheduleModal').style.display = 'none';
+            document.getElementById('scheduleForm').reset();
+        }
+        
+        // تصدير إحصائيات الفروع
+        function exportBranchStats() {
+            showToast('جاري تصدير إحصائيات الفروع...', 'info');
+            
+            setTimeout(() => {
+                const filename = `إحصائيات_الفروع_${new Date().toISOString().split('T')[0]}.xlsx`;
+                showToast(`تم تصدير الإحصائيات: ${filename}`, 'success');
+            }, 1500);
+        }
+        
+        // تصدير تفاصيل السفن
+        function exportShipDetails() {
+            showToast('جاري تصدير تفاصيل السفن...', 'info');
+            
+            setTimeout(() => {
+                const filename = `تفاصيل_السفن_${new Date().toISOString().split('T')[0]}.xlsx`;
+                showToast(`تم التصدير: ${filename}`, 'success');
+            }, 1500);
+        }
+        
+        // طباعة تقرير السفن
+        function printShipReport() {
+            window.print();
+        }
+        
+        // تصدير التقرير المالي
+        function exportFinancialReport() {
+            showToast('جاري تصدير التقرير المالي...', 'info');
+            
+            setTimeout(() => {
+                const filename = `التقرير_المالي_${new Date().toISOString().split('T')[0]}.xlsx`;
+                showToast(`تم التصدير: ${filename}`, 'success');
+            }, 1500);
+        }
+        
+        // تصدير تقرير الموظفين
+        function exportEmployeeReport() {
+            showToast('جاري تصدير تقرير الموظفين...', 'info');
+            
+            setTimeout(() => {
+                const filename = `تقرير_الموظفين_${new Date().toISOString().split('T')[0]}.xlsx`;
+                showToast(`تم التصدير: ${filename}`, 'success');
+            }, 1500);
+        }
+        
+        // تحديث مخطط رئيسي
+        function updateMainChart() {
+            updateRegistrationsChart();
+        }
+        
+        // تحديث مخطط الإيرادات
+        function updateRevenueChart() {
+            updateRevenueAnalysisChart();
+        }
+        
+        // تسجيل الخروج
+        function logout() {
+            if (confirm('هل أنت متأكد من تسجيل الخروج؟')) {
+                showToast('جاري تسجيل الخروج...', 'info');
+                setTimeout(() => {
+                    window.location.href = '../index.html';
+                }, 1500);
+            }
+        }
+        
+        // إدارة أزرار تنسيق التصدير
+        document.addEventListener('DOMContentLoaded', function() {
+            document.querySelectorAll('.format-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    document.querySelectorAll('.format-btn').forEach(b => b.classList.remove('active'));
+                    this.classList.add('active');
+                });
+            });
+        });
+    </script>
+</body>
+</html>

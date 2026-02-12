@@ -1,0 +1,1034 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>تسجيل الدخول - نظام تسجيل السفن</title>
+    <link rel="stylesheet" href="../css/main-styles.css">
+    <link rel="stylesheet" href="../css/login-styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Arabic:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- إضافة مكتبة Supabase -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<!-- إضافة ملفات النظام -->
+<script src="../js/supabase-config.js"></script>
+<script src="../js/auth.js"></script>
+
+    <style>
+        /* أنماط مدمجة من كلا الملفين */
+        
+        /* بيانات الدخول التجريبية */
+        .employee-credentials {
+            background: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 8px;
+            padding: 15px;
+            margin-top: 20px;
+        }
+        
+        .employee-credentials h4 {
+            margin-top: 0;
+            color: #2d6b9e;
+            font-size: 1rem;
+        }
+        
+        .credentials-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 10px;
+        }
+        
+        .credential-item {
+            background: white;
+            padding: 10px;
+            border-radius: 6px;
+            font-size: 0.9rem;
+        }
+        
+        .credential-item strong {
+            color: #495057;
+        }
+        
+        /* تحسين إدخال كلمة المرور */
+        .password-input-wrapper {
+            position: relative;
+        }
+        
+        .toggle-password {
+            position: absolute;
+            left: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            color: #6c757d;
+            cursor: pointer;
+        }
+        
+        /* الرسائل */
+        .login-error {
+            animation: slideIn 0.3s ease;
+        }
+        
+        .login-success {
+            animation: slideIn 0.3s ease;
+        }
+        
+        @keyframes slideIn {
+            from { transform: translateY(-20px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+        
+        /* معلومات النظام */
+        .system-info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-top: 30px;
+        }
+        
+        .info-card {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            text-align: center;
+            transition: transform 0.3s ease;
+        }
+        
+        .info-card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .info-icon {
+            font-size: 2.5rem;
+            color: #2d6b9e;
+            margin-bottom: 15px;
+        }
+        
+        .info-card h4 {
+            margin: 10px 0;
+            color: #333;
+        }
+        
+        .info-card p {
+            color: #666;
+            font-size: 0.9rem;
+            line-height: 1.5;
+        }
+        
+        /* قسم الهيدر المحسن */
+        .login-header {
+            background: linear-gradient(135deg, #1e4d7a 0%, #2d6b9e 100%);
+            color: white;
+            padding: 15px 0;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .logo-section {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .logo-img {
+            height: 50px;
+        }
+        
+        .logo-text h1 {
+            margin: 0;
+            font-size: 1.5rem;
+        }
+        
+        .logo-text p {
+            margin: 5px 0 0;
+            opacity: 0.9;
+            font-size: 0.9rem;
+        }
+        
+        .back-home {
+            color: white;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .back-home:hover {
+            text-decoration: underline;
+        }
+        
+        /* النموذج الرئيسي */
+        .login-container {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            padding: 40px;
+            margin: 40px auto;
+            max-width: 800px;
+        }
+        
+        .login-header-section {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .login-icon {
+            font-size: 3rem;
+            color: #2d6b9e;
+            margin-bottom: 15px;
+        }
+        
+        .login-subtitle {
+            color: #666;
+            margin-bottom: 20px;
+        }
+        
+        /* التنبيهات */
+        .alert {
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .alert-info {
+            background: #e7f3ff;
+            color: #2d6b9e;
+            border-right: 4px solid #2d6b9e;
+        }
+        
+        .alert-warning {
+            background: #fff3cd;
+            color: #856404;
+            border-right: 4px solid #ffc107;
+        }
+        
+        /* حواف النماذج */
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #333;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .form-control {
+            width: 100%;
+            padding: 12px 15px;
+            border: 1px solid #ced4da;
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: border-color 0.3s ease;
+        }
+        
+        .form-control:focus {
+            outline: none;
+            border-color: #2d6b9e;
+            box-shadow: 0 0 0 3px rgba(45, 107, 158, 0.1);
+        }
+        
+        /* الأزرار */
+        .btn {
+            padding: 12px 25px;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            border: none;
+        }
+        
+        .btn-primary {
+            background: #2d6b9e;
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background: #1e4d7a;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+        
+        .btn-secondary:hover {
+            background: #5a6268;
+        }
+        
+        .btn-outline {
+            background: transparent;
+            border: 1px solid #2d6b9e;
+            color: #2d6b9e;
+        }
+        
+        .btn-outline:hover {
+            background: #2d6b9e;
+            color: white;
+        }
+        
+        .btn-block {
+            width: 100%;
+        }
+        
+        .btn-login {
+            font-size: 1.1rem;
+            padding: 15px;
+        }
+        
+        /* التذييل */
+        .login-footer {
+            text-align: center;
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #e9ecef;
+            color: #666;
+            font-size: 0.9rem;
+        }
+        
+        .security-info {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            margin-top: 10px;
+        }
+        
+        /* الأنواع البديلة للدخول */
+        .alternative-login {
+            margin: 20px 0;
+            text-align: center;
+        }
+        
+        .alternative-buttons {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            margin-top: 10px;
+        }
+        
+        /* الخط الفاصل */
+        .login-divider {
+            display: flex;
+            align-items: center;
+            text-align: center;
+            margin: 25px 0;
+            color: #666;
+        }
+        
+        .login-divider::before,
+        .login-divider::after {
+            content: '';
+            flex: 1;
+            border-bottom: 1px solid #dee2e6;
+        }
+        
+        .login-divider span {
+            padding: 0 15px;
+        }
+        
+        /* المعلومات */
+        .login-info {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+        
+        .login-info h4 {
+            margin-top: 0;
+            color: #2d6b9e;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .login-info ul {
+            margin: 10px 0 0;
+            padding-right: 20px;
+        }
+        
+        .login-info li {
+            margin-bottom: 8px;
+            color: #495057;
+        }
+        
+        /* نافذة نسيت كلمة المرور */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+            animation: fadeIn 0.3s ease;
+        }
+        
+        .modal-content {
+            background-color: white;
+            margin: 5% auto;
+            padding: 0;
+            border-radius: 10px;
+            width: 90%;
+            max-width: 500px;
+            animation: slideIn 0.3s ease;
+        }
+        
+        .modal-header {
+            background: #2d6b9e;
+            color: white;
+            padding: 20px;
+            border-radius: 10px 10px 0 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .modal-close {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 1.5rem;
+            cursor: pointer;
+        }
+        
+        .modal-body {
+            padding: 20px;
+            max-height: 60vh;
+            overflow-y: auto;
+        }
+        
+        .contact-info p {
+            margin: 10px 0;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .emergency-contact {
+            background: #fff3cd;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 20px;
+        }
+        
+        .emergency-contact h4 {
+            margin-top: 0;
+            color: #856404;
+        }
+        
+        /* نافذة التحميل */
+        #loadingOverlay {
+            display: none;
+            position: fixed;
+            z-index: 1001;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.7);
+        }
+        
+        .loading-content {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+            color: white;
+        }
+        
+        .spinner {
+            font-size: 3rem;
+            margin-bottom: 20px;
+        }
+        
+        /* قسم المعلومات */
+        .system-info {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-top: 40px;
+        }
+        
+        /* استجابة للشاشات الصغيرة */
+        @media (max-width: 768px) {
+            .header-content {
+                flex-direction: column;
+                gap: 15px;
+                text-align: center;
+            }
+            
+            .alternative-buttons {
+                flex-direction: column;
+            }
+            
+            .login-container {
+                padding: 20px;
+                margin: 20px;
+            }
+            
+            .credentials-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .system-info {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- الهيدر المحسن -->
+    <header class="login-header">
+        <div class="container">
+            <div class="header-content">
+                <a href="../index.html" class="back-home">
+                    <i class="fas fa-arrow-right"></i> العودة للرئيسية
+                </a>
+                <div class="logo-section">
+                    <img src="https://maa-yemen.com/assets/images/logo.png" alt="شعار الهيئة" class="logo-img">
+                    <div class="logo-text">
+                        <h1>الهيئة العامة للشئون البحرية</h1>
+                        <p>نظام تسجيل السفن الإلكتروني</p>
+                    </div>
+                </div>
+                
+                <!-- رابط تسجيل دخول أصحاب السفن -->
+                <a href="../pages/ship-owner-login.html" class="btn btn-outline" style="color: white; border-color: white;">
+                    <i class="fas fa-user-tie"></i> تسجيل دخول أصحاب السفن
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <!-- المحتوى الرئيسي -->
+    <main class="login-main">
+        <div class="container">
+            <div class="login-container">
+                <!-- تحذير للموظفين فقط -->
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle"></i>
+                    هذه الصفحة مخصصة لموظفي الهيئة فقط.
+                </div>
+
+                <!-- نموذج دخول الموظفين -->
+                <form id="employeeLoginForm" class="login-form active">
+                    <div class="form-group">
+                        <label for="employeeRole" class="form-label">
+                            <i class="fas fa-briefcase"></i> الدور الوظيفي
+                        </label>
+                        <select id="employeeRole" name="role" class="form-control" required>
+                            <option value="">-- اختر الدور الوظيفي --</option>
+                            <option value="admin">المسؤول (المقر الرئيسي)</option>
+                            <option value="aden">موظف فرع عدن</option>
+                            <option value="mukalla">موظف فرع المكلا</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="employeeUsername" class="form-label">
+                            <i class="fas fa-user"></i> اسم المستخدم
+                        </label>
+                        <input type="text" id="employeeUsername" name="username" 
+                               class="form-control" placeholder="أدخل اسم المستخدم" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="employeePassword" class="form-label">
+                            <i class="fas fa-lock"></i> كلمة المرور
+                        </label>
+                        <div class="password-input-wrapper">
+                            <input type="password" id="employeePassword" name="password" 
+                                   class="form-control" placeholder="أدخل كلمة المرور" required>
+                            <button type="button" class="toggle-password">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="rememberMe">
+                            <span class="checkmark"></span>
+                            تذكر بيانات الدخول على هذا الجهاز
+                        </label>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary btn-login btn-block">
+                        <i class="fas fa-sign-in-alt"></i> تسجيل الدخول كموظف
+                    </button>
+
+                    <!-- بيانات الدخول التجريبية -->
+                    <div class="employee-credentials">
+                        <h4><i class="fas fa-key"></i> حسابات تجريبية:</h4>
+                        <div class="credentials-grid">
+                            <div class="credential-item">
+                                <strong>المسؤول:</strong><br>
+                                اسم المستخدم: admin<br>
+                                كلمة المرور: admin123<br>
+                                الدور: المسؤول
+                            </div>
+                            <div class="credential-item">
+                                <strong>فرع عدن:</strong><br>
+                                اسم المستخدم: aden<br>
+                                كلمة المرور: aden123<br>
+                                الدور: موظف فرع عدن
+                            </div>
+                            <div class="credential-item">
+                                <strong>فرع المكلا:</strong><br>
+                                اسم المستخدم: mukalla<br>
+                                كلمة المرور: mukalla123<br>
+                                الدور: موظف فرع المكلا
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="login-divider">
+                        <span>أو</span>
+                    </div>
+
+                    <div class="alternative-login">
+                        <p>طرق بديلة للدخول:</p>
+                        <div class="alternative-buttons">
+                            <button type="button" class="btn btn-outline">
+                                <i class="fas fa-fingerprint"></i> البصمة الإلكترونية
+                            </button>
+                            <button type="button" class="btn btn-outline">
+                                <i class="fas fa-id-card"></i> البطاقة الذكية
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="login-info">
+                        <h4><i class="fas fa-exclamation-circle"></i> ملاحظات هامة للموظفين:</h4>
+                        <ul>
+                            <li>يجب استخدام البيانات المخصصة للموظفين فقط</li>
+                            <li>سيتم تسجيل جميع عمليات الدخول للنظام</li>
+                            <li>عدم مشاركة بيانات الدخول مع أي شخص</li>
+                            <li>في حالة وجود مشكلة، التواصل مع قسم تكنولوجيا المعلومات</li>
+                        </ul>
+                    </div>
+                </form>
+
+                <div class="login-footer">
+                    <p>© 2025 الهيئة العامة للشئون البحرية. نظام تسجيل السفن الإلكتروني</p>
+                    <p class="security-info">
+                        <i class="fas fa-shield-alt"></i>
+                        هذا النظام محمي بتقنيات أمنية متقدمة
+                    </p>
+                </div>
+            </div>
+
+            <!-- معلومات النظام -->
+            <div class="system-info">
+                <div class="info-card">
+                    <div class="info-icon">
+                        <i class="fas fa-tachometer-alt"></i>
+                    </div>
+                    <h4>لوحة تحكم متكاملة</h4>
+                    <p>إدارة كاملة لجميع عمليات تسجيل السفن</p>
+                </div>
+
+                <div class="info-card">
+                    <div class="info-icon">
+                        <i class="fas fa-tasks"></i>
+                    </div>
+                    <h4>متابعة الطلبات</h4>
+                    <p>متابعة حالة جميع طلبات تسجيل السفن</p>
+                </div>
+
+                <div class="info-card">
+                    <div class="info-icon">
+                        <i class="fas fa-file-contract"></i>
+                    </div>
+                    <h4>التقارير والإحصائيات</h4>
+                    <p>تقارير مفصلة وإحصائيات عن جميع المعاملات</p>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- نافذة نسيت كلمة المرور -->
+    <div id="forgotPasswordModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3><i class="fas fa-key"></i> استعادة كلمة المرور</h3>
+                <button class="modal-close" id="closeForgotPasswordBtn">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle"></i>
+                    <strong>ملاحظة:</strong> لأسباب أمنية، يمكن فقط للمسؤولين إعادة تعيين كلمات المرور
+                </div>
+                
+                <p>للاستعلام عن كلمة المرور أو إعادة تعيينها، يرجى التواصل مع:</p>
+                
+                <div class="contact-info">
+                    <p><i class="fas fa-user-tie"></i> <strong>مدير النظام:</strong> أحمد العلي</p>
+                    <p><i class="fas fa-phone"></i> <strong>الهاتف:</strong> 0123456789</p>
+                    <p><i class="fas fa-envelope"></i> <strong>البريد الإلكتروني:</strong> it-support@maritime.gov.ye</p>
+                    <p><i class="fas fa-building"></i> <strong>المكتب:</strong> مبنى الإدارة العامة - الطابق الثالث - غرفة 305</p>
+                </div>
+                
+                <div class="alert alert-warning">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    لأسباب أمنية، يجب إعادة تعيين كلمة المرور شخصياً في مقر الهيئة بعد التحقق من الهوية
+                </div>
+                
+                <div class="emergency-contact">
+                    <h4><i class="fas fa-phone-alt"></i> للطوارئ فقط:</h4>
+                    <p><i class="fas fa-mobile-alt"></i> <strong>الدعم الفني الطارئ:</strong> 0112223334 (24/7)</p>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" id="cancelForgotPasswordBtn">
+                    <i class="fas fa-times"></i> إغلاق
+                </button>
+                <button type="button" class="btn btn-primary" id="sendPasswordResetBtn">
+                    <i class="fas fa-paper-plane"></i> إرسال طلب استعادة
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- نافذة رسالة التحميل -->
+    <div id="loadingOverlay"></div>
+
+    <script>
+        // بيانات المستخدمين للتجربة (للموظفين فقط)
+        const users = {
+            admin: { 
+                username: 'admin', 
+                password: 'admin123', 
+                role: 'admin', 
+                name: 'المسؤول الرئيسي',
+                department: 'admin'
+            },
+            aden: { 
+                username: 'aden', 
+                password: 'aden123', 
+                role: 'aden', 
+                name: 'موظف فرع عدن',
+                department: 'aden'
+            },
+            mukalla: { 
+                username: 'mukalla', 
+                password: 'mukalla123', 
+                role: 'mukalla', 
+                name: 'موظف فرع المكلا',
+                department: 'mukalla'
+            }
+        };
+
+        // DOM جاهز
+        document.addEventListener('DOMContentLoaded', function() {
+            // ===== إظهار/إخفاء كلمة المرور =====
+            const toggleButtons = document.querySelectorAll('.toggle-password');
+            toggleButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    const input = this.parentElement.querySelector('input');
+                    const icon = this.querySelector('i');
+                    
+                    if (input.type === 'password') {
+                        input.type = 'text';
+                        icon.className = 'fas fa-eye-slash';
+                    } else {
+                        input.type = 'password';
+                        icon.className = 'fas fa-eye';
+                    }
+                });
+            });
+            
+            // ===== تسجيل دخول الموظفين =====
+async function handleEmployeeLogin(e) {
+    e.preventDefault();
+    
+    const role = document.getElementById('employeeRole').value;
+    const username = document.getElementById('employeeUsername').value.trim();
+    const password = document.getElementById('employeePassword').value;
+    const rememberMe = document.getElementById('rememberMe').checked;
+    
+    if (!role) {
+        showError('الرجاء اختيار الدور الوظيفي');
+        return;
+    }
+    
+    // بناء البريد الإلكتروني من اسم المستخدم
+    const email = username.includes('@') ? username : `${username}@maritime.gov.ye`;
+    
+    const result = await loginEmployee(email, password, role);
+    
+    if (result.success && rememberMe) {
+        localStorage.setItem('rememberedUser', JSON.stringify({
+            username: username,
+            role: role
+        }));
+    }
+}
+                
+                // التحقق من بيانات المستخدم
+                let user = null;
+                if (username === 'admin' && password === 'admin123' && role === 'admin') {
+                    user = users.admin;
+                } else if (username === 'aden' && password === 'aden123' && role === 'aden') {
+                    user = users.aden;
+                } else if (username === 'mukalla' && password === 'mukalla123' && role === 'mukalla') {
+                    user = users.mukalla;
+                }
+                
+                if (user) {
+                    // حفظ بيانات المستخدم
+                    localStorage.setItem('currentUser', JSON.stringify(user));
+                    localStorage.setItem('loginTime', new Date().toISOString());
+                    
+                    // حفظ تذكر الدخول
+                    if (rememberMe) {
+                        localStorage.setItem('rememberedUser', JSON.stringify({
+                            username: username,
+                            role: role
+                        }));
+                    } else {
+                        localStorage.removeItem('rememberedUser');
+                    }
+                    
+                    // إظهار رسالة النجاح
+                    showLoading('جاري التوجيه إلى لوحة التحكم...');
+                    
+                    // التوجيه للصفحة المناسبة
+                    setTimeout(() => {
+                        redirectToDashboard(user.role);
+                    }, 1500);
+                } else {
+                    showError('بيانات الدخول غير صحيحة');
+                }
+            });
+            
+            // ===== نافذة نسيت كلمة المرور =====
+            const forgotPasswordModal = document.getElementById('forgotPasswordModal');
+            const closeForgotPasswordBtn = document.getElementById('closeForgotPasswordBtn');
+            const cancelForgotPasswordBtn = document.getElementById('cancelForgotPasswordBtn');
+            const sendPasswordResetBtn = document.getElementById('sendPasswordResetBtn');
+            
+            // فتح النافذة (في هذا الإصدار تم إزالة الرابط، يمكن إضافته لاحقاً إذا لزم الأمر)
+            
+            // إغلاق النافذة
+            closeForgotPasswordBtn.addEventListener('click', closeForgotPasswordModal);
+            cancelForgotPasswordBtn.addEventListener('click', closeForgotPasswordModal);
+            
+            // إغلاق عند النقر خارج النافذة
+            window.addEventListener('click', function(e) {
+                if (e.target === forgotPasswordModal) {
+                    closeForgotPasswordModal();
+                }
+            });
+            
+            // إرسال طلب استعادة
+            sendPasswordResetBtn.addEventListener('click', function() {
+                const btn = this;
+                const originalText = btn.innerHTML;
+                
+                btn.disabled = true;
+                btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جاري الإرسال...';
+                
+                // محاكاة الإرسال
+                setTimeout(() => {
+                    btn.innerHTML = '<i class="fas fa-check"></i> تم الإرسال';
+                    btn.classList.remove('btn-primary');
+                    btn.classList.add('btn-success');
+                    
+                    // إظهار رسالة نجاح
+                    const modalBody = document.querySelector('#forgotPasswordModal .modal-body');
+                    const successMsg = document.createElement('div');
+                    successMsg.className = 'alert alert-success';
+                    successMsg.innerHTML = '<i class="fas fa-check-circle"></i> تم إرسال طلب استعادة كلمة المرور. سيتصل بك فريق الدعم خلال 24 ساعة.';
+                    modalBody.insertBefore(successMsg, modalBody.firstChild);
+                    
+                    // إغلاق النافذة بعد 3 ثوان
+                    setTimeout(() => {
+                        closeForgotPasswordModal();
+                        // إعادة تعيين الزر
+                        setTimeout(() => {
+                            btn.disabled = false;
+                            btn.innerHTML = originalText;
+                            btn.classList.remove('btn-success');
+                            btn.classList.add('btn-primary');
+                            // إزالة رسالة النجاح
+                            if (successMsg.parentNode) {
+                                successMsg.parentNode.removeChild(successMsg);
+                            }
+                        }, 500);
+                    }, 3000);
+                }, 2000);
+            });
+            
+            // ===== تحميل بيانات تذكر الدخول =====
+            const rememberedUser = localStorage.getItem('rememberedUser');
+            if (rememberedUser) {
+                try {
+                    const user = JSON.parse(rememberedUser);
+                    
+                    if (user.username) {
+                        // مستخدم موظف
+                        document.getElementById('employeeUsername').value = user.username || '';
+                        document.getElementById('employeeRole').value = user.role || '';
+                        document.getElementById('rememberMe').checked = true;
+                    }
+                } catch (e) {
+                    console.error('خطأ في تحميل بيانات التذكر:', e);
+                }
+            }
+        });
+
+        // ===== دوال مساعدة =====
+        
+        // دالة عرض رسالة خطأ
+        function showError(message) {
+            // إزالة أي رسائل خطأ سابقة
+            const existingError = document.querySelector('.login-error');
+            if (existingError) existingError.remove();
+            
+            // إنشاء رسالة الخطأ
+            const errorDiv = document.createElement('div');
+            errorDiv.className = 'login-error';
+            errorDiv.innerHTML = `
+                <div style="
+                    background-color: #fed7d7;
+                    color: #9b2c2c;
+                    padding: 15px;
+                    border-radius: 8px;
+                    border-right: 4px solid #e53e3e;
+                    margin-bottom: 20px;
+                    display: flex;
+                    align-items: center;
+                    gap: 10px;
+                ">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <span>${message}</span>
+                </div>
+            `;
+            
+            // إضافة الرسالة
+            const container = document.querySelector('.login-container');
+            if (container) {
+                const firstChild = container.firstElementChild;
+                container.insertBefore(errorDiv, firstChild);
+            }
+            
+            // إخفاء الرسالة بعد 5 ثواني
+            setTimeout(() => {
+                if (errorDiv.parentNode) {
+                    errorDiv.parentNode.removeChild(errorDiv);
+                }
+            }, 5000);
+        }
+        
+        // دالة التوجيه للصفحة المناسبة
+        function redirectToDashboard(role) {
+            let url = '';
+            
+            switch(role) {
+                case 'admin':
+                    url = 'admin-dashboard.html';
+                    break;
+                case 'aden':
+                case 'mukalla':
+                    url = 'branch-employee-dashboard.html';
+                    break;
+                default:
+                    url = '../index.html';
+            }
+            
+            // عرض رسالة نجاح قبل التوجيه
+            const successDiv = document.createElement('div');
+            successDiv.className = 'login-success';
+            successDiv.innerHTML = `
+                <div style="
+                    background-color: #c6f6d5;
+                    color: #22543d;
+                    padding: 15px;
+                    border-radius: 8px;
+                    border-right: 4px solid #38a169;
+                    margin-bottom: 20px;
+                    display: flex;
+                    align-items: center;
+                    gap: 10px;
+                    position: fixed;
+                    top: 20px;
+                    left: 50%;
+                    transform: translateX(-50%);
+                    z-index: 1000;
+                    min-width: 300px;
+                    text-align: center;
+                ">
+                    <i class="fas fa-check-circle"></i>
+                    <span>تم تسجيل الدخول بنجاح، جاري التوجيه...</span>
+                </div>
+            `;
+            
+            document.body.appendChild(successDiv);
+            
+            // التوجيه بعد ثانيتين
+            setTimeout(() => {
+                window.location.href = url;
+            }, 2000);
+        }
+        
+        // دالة إظهار رسالة التحميل
+        function showLoading(message) {
+            const loadingOverlay = document.getElementById('loadingOverlay');
+            loadingOverlay.innerHTML = `
+                <div class="loading-content">
+                    <div class="spinner">
+                        <i class="fas fa-spinner fa-spin"></i>
+                    </div>
+                    <p>${message}</p>
+                </div>
+            `;
+            loadingOverlay.style.display = 'block';
+        }
+        
+        // دالة إخفاء التحميل
+        function hideLoading() {
+            document.getElementById('loadingOverlay').style.display = 'none';
+        }
+        
+        // دالة إغلاق نافذة نسيت كلمة المرور
+        function closeForgotPasswordModal() {
+            document.getElementById('forgotPasswordModal').style.display = 'none';
+        }
+        
+        // إغلاق بمفتاح ESC
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                closeForgotPasswordModal();
+            }
+        });
+    </script>
+</body>
+</html>

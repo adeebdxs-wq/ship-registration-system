@@ -1,0 +1,635 @@
+/* ===== responsive.css ===== */
+/* نظام تسجيل السفن - أنماط التجاوب */
+
+/* ===== الشاشات الكبيرة (1200px+) ===== */
+@media (min-width: 1200px) {
+  .container {
+    max-width: 1140px;
+  }
+  
+  .grid-2, .grid-3, .grid-4 {
+    gap: var(--spacing-xl);
+  }
+}
+
+/* ===== الشاشات المتوسطة (992px - 1199px) ===== */
+@media (max-width: 1199px) {
+  .container {
+    max-width: 960px;
+  }
+  
+  h1 {
+    font-size: 1.8rem;
+  }
+  
+  h2 {
+    font-size: 1.6rem;
+  }
+  
+  .hero-title {
+    font-size: 2.5rem;
+  }
+  
+  .hero-subtitle {
+    font-size: 1.2rem;
+  }
+  
+  .grid-4 {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+/* ===== الشاشات اللوحية (768px - 991px) ===== */
+@media (max-width: 991px) {
+  .container {
+    max-width: 720px;
+  }
+  
+  h1 {
+    font-size: 1.6rem;
+  }
+  
+  h2 {
+    font-size: 1.4rem;
+  }
+  
+  .section-title {
+    font-size: 1.8rem;
+    margin-bottom: var(--spacing-xl);
+  }
+  
+  .grid-3, .grid-4 {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  
+  /* ===== الهيدر ===== */
+  .nav-menu {
+    display: none;
+    position: fixed;
+    top: 89px;
+    right: 0;
+    background: var(--primary-blue);
+    width: 280px;
+    flex-direction: column;
+    padding: 0;
+    box-shadow: -5px 5px 15px rgba(0,0,0,0.2);
+    border-radius: 0 0 0 8px;
+    z-index: 999;
+  }
+  
+  .nav-menu.active {
+    display: flex;
+  }
+  
+  .nav-item {
+    width: 100%;
+  }
+  
+  .nav-item .nav-link {
+    padding: 16px 25px;
+    text-align: right;
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+    border-radius: 0;
+    font-size: 1rem;
+  }
+  
+  .nav-item:last-child .nav-link {
+    border-bottom: none;
+  }
+  
+  .btn-login {
+    margin: 10px 25px 25px;
+    display: inline-block;
+    width: calc(100% - 50px);
+    text-align: center;
+  }
+  
+  .mobile-menu-btn {
+    display: block;
+  }
+  
+  /* ===== لوحة التحكم ===== */
+  .dashboard-container {
+    flex-direction: column;
+  }
+  
+  .sidebar {
+    width: 100%;
+    height: auto;
+    position: static;
+    border-left: none;
+    border-bottom: 1px solid #dee2e6;
+  }
+  
+  .sidebar-nav {
+    padding: var(--spacing-md);
+  }
+  
+  .nav-list {
+    display: flex;
+    overflow-x: auto;
+    gap: 5px;
+  }
+  
+  .nav-link {
+    white-space: nowrap;
+    padding: var(--spacing-sm) var(--spacing-md);
+    border-right: none;
+    border-bottom: 3px solid transparent;
+  }
+  
+  .nav-link.active {
+    border-bottom-color: var(--primary-blue);
+    border-right-color: transparent;
+  }
+  
+  /* ===== الأزرار في الهيرو ===== */
+  .cta-buttons {
+    flex-direction: column;
+    align-items: center;
+    gap: var(--spacing-md);
+  }
+  
+  .btn-primary,
+  .btn-secondary {
+    width: 100%;
+    max-width: 300px;
+  }
+  
+  /* ===== النماذج ===== */
+  .form-row {
+    flex-direction: column;
+    gap: var(--spacing-md);
+  }
+  
+  .form-row .form-group {
+    margin-bottom: 0;
+  }
+  
+  /* ===== الجداول ===== */
+  .data-table {
+    font-size: 0.9rem;
+  }
+  
+  .data-table th,
+  .data-table td {
+    padding: 10px;
+  }
+  
+  /* ===== الصفحات ===== */
+  .header-content {
+    flex-direction: column;
+    gap: var(--spacing-md);
+    text-align: center;
+  }
+  
+  .user-controls {
+    width: 100%;
+    justify-content: center;
+  }
+  
+  .footer-content {
+    flex-direction: column;
+    gap: var(--spacing-md);
+    text-align: center;
+  }
+  
+  .footer-container {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+/* ===== شاشات الهواتف (576px - 767px) ===== */
+@media (max-width: 767px) {
+  .container {
+    max-width: 540px;
+    padding: 0 var(--spacing-md);
+  }
+  
+  h1 {
+    font-size: 1.4rem;
+  }
+  
+  h2 {
+    font-size: 1.2rem;
+  }
+  
+  h3 {
+    font-size: 1.1rem;
+  }
+  
+  .section-title {
+    font-size: 1.6rem;
+  }
+  
+  .grid-2, .grid-3, .grid-4 {
+    grid-template-columns: 1fr;
+  }
+  
+  /* ===== الهيدر ===== */
+  .logo-section {
+    gap: var(--spacing-sm);
+  }
+  
+  .logo-img {
+    height: 50px;
+  }
+  
+  .logo-text h1 {
+    font-size: 1.2rem;
+  }
+  
+  .logo-text p {
+    font-size: 0.8rem;
+  }
+  
+  /* ===== الهيرو ===== */
+  .hero-title {
+    font-size: 2rem;
+  }
+  
+  .hero-subtitle {
+    font-size: 1rem;
+  }
+  
+  /* ===== لوحة التحكم ===== */
+  .stats-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .stat-card {
+    padding: var(--spacing-md);
+  }
+  
+  .stat-value {
+    font-size: 1.8rem;
+  }
+  
+  .quick-stats-row {
+    grid-template-columns: 1fr;
+  }
+  
+  /* ===== النماذج ===== */
+  .login-container {
+    padding: var(--spacing-lg);
+    margin: var(--spacing-md);
+  }
+  
+  .form-actions {
+    flex-direction: column;
+  }
+  
+  .form-actions .btn {
+    width: 100%;
+  }
+  
+  /* ===== البطاقات ===== */
+  .ship-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  
+  .ship-info-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .service-cards {
+    grid-template-columns: 1fr;
+  }
+  
+  /* ===== مسار الطلب ===== */
+  .tracker-line {
+    right: 30px;
+  }
+  
+  .step-icon {
+    width: 60px;
+    height: 60px;
+    font-size: 1.5rem;
+  }
+  
+  /* ===== المستندات ===== */
+  .document-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  
+  .document-requirements {
+    flex-wrap: wrap;
+  }
+  
+  .summary-stats {
+    grid-template-columns: 1fr;
+    gap: var(--spacing-md);
+  }
+  
+  /* ===== الإشعارات ===== */
+  .notification-item {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  
+  .notification-icon {
+    margin-bottom: var(--spacing-xs);
+  }
+  
+  /* ===== المراجعة ===== */
+  .review-nav {
+    flex-direction: column;
+  }
+  
+  .review-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  /* ===== الجداول ===== */
+  .application-header {
+    flex-direction: column;
+    gap: var(--spacing-sm);
+  }
+  
+  .application-details {
+    grid-template-columns: 1fr;
+  }
+  
+  .application-actions {
+    flex-direction: column;
+  }
+  
+  .application-actions .btn {
+    width: 100%;
+  }
+  
+  /* ===== الفوتر ===== */
+  .footer-container {
+    grid-template-columns: 1fr;
+    gap: var(--spacing-xl);
+  }
+  
+  /* ===== النوافذ المنبثقة ===== */
+  .modal-content {
+    width: 95%;
+  }
+  
+  .tabs {
+    flex-direction: column;
+  }
+  
+  .tab-btn {
+    border-bottom: none;
+    border-right: 3px solid transparent;
+    justify-content: flex-start;
+    padding: 15px;
+  }
+  
+  .tab-btn.active {
+    border-right-color: var(--secondary-blue);
+    border-bottom: none;
+  }
+  
+  /* ===== بيانات الدخول ===== */
+  .credentials-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ===== الشاشات الصغيرة جداً (320px - 575px) ===== */
+@media (max-width: 575px) {
+  .container {
+    padding: 0 var(--spacing-sm);
+  }
+  
+  h1 {
+    font-size: 1.2rem;
+  }
+  
+  h2 {
+    font-size: 1.1rem;
+  }
+  
+  .section-title {
+    font-size: 1.4rem;
+  }
+  
+  /* ===== الهيدر ===== */
+  .header-container {
+    flex-direction: column;
+  }
+  
+  .logo-section {
+    width: 100%;
+    justify-content: center;
+  }
+  
+  .logo-img {
+    height: 45px;
+  }
+  
+  .logo-text h1 {
+    font-size: 1rem;
+  }
+  
+  /* ===== الهيرو ===== */
+  .hero-banner {
+    padding: 60px 15px;
+  }
+  
+  .hero-title {
+    font-size: 1.6rem;
+  }
+  
+  .hero-subtitle {
+    font-size: 0.95rem;
+  }
+  
+  .btn-primary,
+  .btn-secondary {
+    padding: 12px 20px;
+    font-size: 0.95rem;
+  }
+  
+  /* ===== لوحة التحكم ===== */
+  .dashboard-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--spacing-md);
+  }
+  
+  .header-actions {
+    width: 100%;
+    flex-wrap: wrap;
+  }
+  
+  .search-box {
+    width: 100%;
+  }
+  
+  .search-input {
+    width: 100%;
+  }
+  
+  .main-content {
+    padding: var(--spacing-md);
+  }
+  
+  /* ===== البطاقات ===== */
+  .stat-card {
+    flex-direction: column;
+    text-align: center;
+  }
+  
+  .ship-actions {
+    flex-direction: column;
+    width: 100%;
+  }
+  
+  .ship-actions .btn {
+    width: 100%;
+  }
+  
+  /* ===== النماذج ===== */
+  .login-container {
+    padding: var(--spacing-md);
+    margin: var(--spacing-sm);
+  }
+  
+  .form-section {
+    padding: var(--spacing-md);
+  }
+  
+  .radio-group {
+    flex-direction: column;
+    gap: var(--spacing-sm);
+  }
+  
+  /* ===== مسار الطلب ===== */
+  .tracker-step {
+    flex-direction: column;
+    align-items: flex-start;
+    text-align: center;
+  }
+  
+  .step-icon {
+    margin-left: 0;
+    margin-bottom: var(--spacing-md);
+  }
+  
+  /* ===== الجداول ===== */
+  .data-table th,
+  .data-table td {
+    padding: 8px;
+    font-size: 0.85rem;
+  }
+  
+  /* ===== النوافذ المنبثقة ===== */
+  .modal-content {
+    width: 100%;
+    height: 100%;
+    max-height: 100%;
+    border-radius: 0;
+  }
+  
+  .modal-header {
+    padding: var(--spacing-md);
+  }
+  
+  .modal-body {
+    padding: var(--spacing-md);
+  }
+  
+  .modal-footer {
+    flex-direction: column;
+  }
+  
+  .modal-footer .btn {
+    width: 100%;
+  }
+  
+  /* ===== إجراءات سريعة ===== */
+  .actions-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  /* ===== التذييل ===== */
+  .footer {
+    padding: var(--spacing-md) 0;
+  }
+}
+
+/* ===== دعم الشاشات العرضية ===== */
+@media (orientation: landscape) and (max-height: 500px) {
+  .modal-content {
+    max-height: 90vh;
+  }
+  
+  .sidebar {
+    height: auto;
+    position: static;
+  }
+  
+  .nav-menu {
+    max-height: 80vh;
+    overflow-y: auto;
+  }
+}
+
+/* ===== دعم الطباعة ===== */
+@media print {
+  @page {
+    size: A4;
+    margin: 2cm;
+  }
+  
+  body {
+    font-size: 12pt;
+    line-height: 1.5;
+    color: #000;
+    background: #fff;
+  }
+  
+  .print-container {
+    max-width: 100%;
+    margin: 0;
+    padding: 0;
+  }
+  
+  .print-header, .print-footer {
+    background: #fff !important;
+    color: #000 !important;
+    border: 1px solid #000;
+  }
+  
+  .print-section {
+    page-break-inside: avoid;
+  }
+  
+  h1, h2, h3, h4 {
+    color: #000 !important;
+  }
+  
+  a {
+    text-decoration: none;
+    color: #000;
+  }
+  
+  .no-print {
+    display: none !important;
+  }
+  
+  .badge {
+    border: 1px solid #000;
+    background: #fff !important;
+    color: #000 !important;
+  }
+}
+
+/* ===== دعم RTL إضافي ===== */
+.rtl-supported {
+  direction: rtl;
+  text-align: right;
+}
+
+[dir="ltr"] {
+  direction: ltr;
+  text-align: left;
+}
