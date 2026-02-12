@@ -3,8 +3,8 @@
 // ================================================
 
 // إنشاء اتصال Supabase
-const supabaseUrl = 'https://your-project-id.supabase.co'; // ⚠️ استبدل هذا برابط مشروعك
-const supabaseAnonKey = 'your-anon-key'; // ⚠️ استبدل هذا بالمفتاح العام
+const supabaseUrl = 'https://jswzallmawmjypimixbb.supabase.co'; // ⚠️ استبدل هذا برابط مشروعك
+const supabaseAnonKey = 'sb_publishable_LRAvXJd5qHXdHo7jWRF49Q_ruw8kTmt'; // ⚠️ استبدل هذا بالمفتاح العام
 
 // تهيئة عميل Supabase
 const supabase = window.supabase.createClient(supabaseUrl, supabaseAnonKey, {
