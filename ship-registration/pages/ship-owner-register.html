@@ -1410,10 +1410,14 @@
         setupFileUpload('idDoc', 'idPreview');
         setupFileUpload('paymentReceipt', 'paymentReceiptPreview');
     </script>
-    <!-- تحميل مكتبة Supabase -->
+    <!-- 1️⃣ أولاً: مكتبة Supabase -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
-<!-- تحميل ملف auth.js الذي يحتوي على المفاتيح -->
-<script src="../js/auth.js"></script>
+<!-- 2️⃣ ثانياً: ملف التكوين (يعرف supabase) -->
+<script src="/js/supabase-config.js"></script>
+
+<!-- 3️⃣ ثالثاً: ملفات الوظائف (تستخدم supabase) -->
+<script src="/js/auth.js"></script>
+<script src="/js/main.js"></script>
 </body>
 </html>
