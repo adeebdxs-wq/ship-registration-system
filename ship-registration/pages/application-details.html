@@ -1,0 +1,1847 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>تفاصيل الطلب - نظام تسجيل السفن</title>
+    
+    <!-- Fonts & Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Arabic:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Supabase -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <!-- أيقونة الموقع الأساسية -->
+    <link rel="icon" type="image/png" sizes="16x16" href="../assets/images/favicon.ico">>
+    <style>
+        /* ===== المتغيرات العامة ===== */
+        :root {
+            --primary: #1e4b7a;
+            --primary-dark: #0f2c4a;
+            --primary-light: #2c7be5;
+            --secondary: #8b7355;
+            --success: #28a745;
+            --warning: #ffc107;
+            --danger: #dc3545;
+            --info: #17a2b8;
+            --light: #f8f9fa;
+            --dark: #343a40;
+            --white: #ffffff;
+            --shadow-sm: 0 2px 4px rgba(0,0,0,0.04);
+            --shadow-md: 0 4px 12px rgba(0,0,0,0.08);
+            --shadow-lg: 0 8px 24px rgba(0,0,0,0.12);
+            --radius-sm: 6px;
+            --radius-md: 10px;
+            --radius-lg: 16px;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Noto Sans Arabic', sans-serif;
+            background: linear-gradient(135deg, #f1f5f9 0%, #e6eef5 100%);
+            color: var(--dark);
+            line-height: 1.6;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        /* ===== شريط التنقل ===== */
+        .navbar {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            color: white;
+            padding: 16px 32px;
+            border-radius: var(--radius-lg);
+            margin-bottom: 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .navbar-brand {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .navbar-brand i {
+            font-size: 1.8rem;
+        }
+
+        .navbar-brand h1 {
+            font-size: 1.5rem;
+            font-weight: 700;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: var(--radius-sm);
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            text-decoration: none;
+        }
+
+        .btn-light {
+            background: white;
+            color: var(--primary);
+        }
+
+        .btn-light:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md);
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: white;
+            border: none;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md);
+        }
+
+        .btn-outline {
+            background: transparent;
+            border: 1px solid var(--primary);
+            color: var(--primary);
+        }
+
+        .btn-outline:hover {
+            background: var(--primary);
+            color: white;
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, var(--success), #1e7e34);
+            color: white;
+        }
+
+        .btn-warning {
+            background: linear-gradient(135deg, var(--warning), #e0a800);
+            color: white;
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, var(--danger), #c82333);
+            color: white;
+        }
+
+        .btn-sm {
+            padding: 6px 12px;
+            font-size: 0.85rem;
+        }
+
+        /* ===== بطاقة حالة الطلب ===== */
+        .status-header {
+            background: white;
+            border-radius: var(--radius-lg);
+            padding: 30px;
+            box-shadow: var(--shadow-sm);
+            margin-bottom: 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+
+        .status-info {
+            display: flex;
+            align-items: center;
+            gap: 30px;
+            flex-wrap: wrap;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 8px 20px;
+            border-radius: 30px;
+            font-size: 1rem;
+            font-weight: 600;
+        }
+
+        .status-pending {
+            background: rgba(255, 193, 7, 0.1);
+            color: #856404;
+            border: 1px solid rgba(255, 193, 7, 0.2);
+        }
+
+        .status-reviewing {
+            background: rgba(23, 162, 184, 0.1);
+            color: var(--info);
+            border: 1px solid rgba(23, 162, 184, 0.2);
+        }
+
+        .status-approved {
+            background: rgba(40, 167, 69, 0.1);
+            color: var(--success);
+            border: 1px solid rgba(40, 167, 69, 0.2);
+        }
+
+        .status-rejected {
+            background: rgba(220, 53, 69, 0.1);
+            color: var(--danger);
+            border: 1px solid rgba(220, 53, 69, 0.2);
+        }
+
+        .status-rejected-by-employee {
+            background: rgba(220, 53, 69, 0.15);
+            color: var(--danger);
+            border: 1px solid rgba(220, 53, 69, 0.3);
+            font-weight: 700;
+        }
+
+        .status-ready-for-employee {
+            background: rgba(40, 167, 69, 0.15);
+            color: var(--success);
+            border: 1px solid rgba(40, 167, 69, 0.3);
+            animation: pulse 2s infinite;
+        }
+
+        .status-certificate-issued {
+            background: rgba(40, 167, 69, 0.2);
+            color: var(--success);
+            border: 1px solid rgba(40, 167, 69, 0.4);
+            font-weight: 700;
+        }
+
+        .application-number {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--primary);
+        }
+
+        .application-date {
+            color: #64748b;
+        }
+
+        /* ===== قسم جديد: معلومات الرفض والتعديل ===== */
+        .action-info-card {
+            background: white;
+            border-radius: var(--radius-lg);
+            padding: 25px;
+            box-shadow: var(--shadow-sm);
+            margin-bottom: 30px;
+            border-right: 4px solid var(--warning);
+        }
+
+        .action-info-header {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 20px;
+            color: var(--warning);
+        }
+
+        .action-info-header i {
+            font-size: 2rem;
+        }
+
+        .action-info-header h3 {
+            margin: 0;
+            font-size: 1.3rem;
+        }
+
+        .action-details-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .action-detail-item {
+            background: #f8fafc;
+            padding: 15px;
+            border-radius: var(--radius-md);
+        }
+
+        .action-detail-label {
+            display: block;
+            color: #64748b;
+            font-size: 0.9rem;
+            margin-bottom: 5px;
+        }
+
+        .action-detail-value {
+            display: block;
+            font-weight: 700;
+            color: var(--dark);
+            font-size: 1.1rem;
+        }
+
+        .action-message {
+            background: white;
+            padding: 20px;
+            border-radius: var(--radius-md);
+            border: 1px solid #e2e8f0;
+            margin-top: 15px;
+        }
+
+        .action-message-title {
+            font-weight: 700;
+            color: var(--primary);
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .action-message-content {
+            color: var(--dark);
+            line-height: 1.8;
+            padding: 15px;
+            background: #f8fafc;
+            border-radius: var(--radius-sm);
+        }
+
+        /* ===== تتبع حالة الطلب المطور ===== */
+        .tracking-section {
+            background: white;
+            border-radius: var(--radius-lg);
+            padding: 30px;
+            box-shadow: var(--shadow-sm);
+            margin-bottom: 30px;
+        }
+
+        .tracking-steps {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 30px;
+            position: relative;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+
+        .tracking-steps::before {
+            content: '';
+            position: absolute;
+            top: 25px;
+            left: 50px;
+            right: 50px;
+            height: 3px;
+            background: #e2e8f0;
+            z-index: 1;
+        }
+
+        .tracking-step {
+            position: relative;
+            z-index: 2;
+            text-align: center;
+            flex: 1;
+            min-width: 120px;
+        }
+
+        .step-icon {
+            width: 50px;
+            height: 50px;
+            background: white;
+            border: 3px solid #e2e8f0;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 15px;
+            color: #94a3b8;
+            font-size: 1.2rem;
+        }
+
+        .step-active .step-icon {
+            border-color: var(--primary);
+            background: var(--primary);
+            color: white;
+        }
+
+        .step-completed .step-icon {
+            border-color: var(--success);
+            background: var(--success);
+            color: white;
+        }
+
+        .step-rejected .step-icon {
+            border-color: var(--danger);
+            background: var(--danger);
+            color: white;
+        }
+
+        .step-warning .step-icon {
+            border-color: var(--warning);
+            background: var(--warning);
+            color: white;
+        }
+
+        .step-title {
+            font-weight: 700;
+            margin-bottom: 5px;
+        }
+
+        .step-date {
+            font-size: 0.85rem;
+            color: #64748b;
+        }
+
+        .step-employee {
+            font-size: 0.8rem;
+            color: var(--primary);
+            margin-top: 5px;
+            font-weight: 600;
+        }
+
+        /* ===== شبكة المعلومات ===== */
+        .details-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+
+        .detail-card {
+            background: white;
+            border-radius: var(--radius-lg);
+            padding: 25px;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #e2e8f0;
+        }
+
+        .card-header h3 {
+            color: var(--primary);
+            font-size: 1.2rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .info-row {
+            display: flex;
+            margin-bottom: 15px;
+            padding: 10px;
+            background: #f8fafc;
+            border-radius: var(--radius-sm);
+        }
+
+        .info-label {
+            width: 130px;
+            font-weight: 600;
+            color: var(--dark);
+        }
+
+        .info-value {
+            flex: 1;
+            color: #64748b;
+        }
+
+        /* ===== جدول المستندات ===== */
+        .documents-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .documents-table th {
+            background: linear-gradient(135deg, rgba(30, 75, 122, 0.05), rgba(15, 44, 74, 0.05));
+            color: var(--primary);
+            padding: 15px;
+            text-align: right;
+            font-weight: 700;
+        }
+
+        .documents-table td {
+            padding: 15px;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .document-status {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+        .status-verified {
+            background: rgba(40, 167, 69, 0.1);
+            color: var(--success);
+        }
+
+        .status-pending {
+            background: rgba(255, 193, 7, 0.1);
+            color: #856404;
+        }
+
+        .status-missing {
+            background: rgba(220, 53, 69, 0.1);
+            color: var(--danger);
+        }
+
+        /* ===== سجل المراجعات المطور ===== */
+        .review-timeline {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .review-item {
+            display: flex;
+            gap: 15px;
+            padding: 15px;
+            background: #f8fafc;
+            border-radius: var(--radius-md);
+            border-right: 4px solid transparent;
+        }
+
+        .review-item.rejection {
+            border-right-color: var(--danger);
+            background: rgba(220, 53, 69, 0.05);
+        }
+
+        .review-item.modification {
+            border-right-color: var(--warning);
+            background: rgba(255, 193, 7, 0.05);
+        }
+
+        .review-item.approval {
+            border-right-color: var(--success);
+            background: rgba(40, 167, 69, 0.05);
+        }
+
+        .review-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+        }
+
+        .review-content {
+            flex: 1;
+        }
+
+        .review-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            flex-wrap: wrap;
+        }
+
+        .reviewer-name {
+            font-weight: 700;
+            color: var(--primary);
+        }
+
+        .reviewer-role {
+            font-size: 0.8rem;
+            color: #64748b;
+            margin-right: 10px;
+        }
+
+        .review-date {
+            font-size: 0.85rem;
+            color: #64748b;
+        }
+
+        .review-action {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+
+        .review-notes {
+            color: var(--dark);
+            line-height: 1.6;
+        }
+
+        .review-branch {
+            font-size: 0.8rem;
+            color: var(--secondary);
+            margin-top: 8px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        /* ===== شريط الإجراءات ===== */
+        .action-bar {
+            background: white;
+            border-radius: var(--radius-lg);
+            padding: 20px 30px;
+            box-shadow: var(--shadow-md);
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            margin-top: 30px;
+        }
+
+        /* ===== التحميل ===== */
+        .loading {
+            text-align: center;
+            padding: 60px;
+            color: var(--primary);
+        }
+
+        .loading i {
+            font-size: 3rem;
+            margin-bottom: 20px;
+        }
+
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.8; }
+            100% { opacity: 1; }
+        }
+
+        @media (max-width: 768px) {
+            .tracking-steps::before {
+                display: none;
+            }
+            
+            .tracking-step {
+                display: flex;
+                align-items: center;
+                text-align: right;
+                gap: 20px;
+                min-width: 100%;
+            }
+            
+            .step-icon {
+                margin: 0;
+            }
+            
+            .details-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .status-header {
+                flex-direction: column;
+            }
+        }
+
+        /* ===== بطاقة معلومات الموظف المصغرة ===== */
+        .employee-mini-card {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: white;
+            padding: 8px 15px;
+            border-radius: 30px;
+            border: 1px solid #e2e8f0;
+        }
+
+        .employee-mini-avatar {
+            width: 30px;
+            height: 30px;
+            background: var(--secondary);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 0.8rem;
+        }
+
+        .employee-mini-info {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .employee-mini-name {
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+
+        .employee-mini-branch {
+            font-size: 0.7rem;
+            color: #64748b;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- شريط التنقل -->
+        <nav class="navbar">
+            <div class="navbar-brand">
+                <div class="logo-section">
+          <img src="../assets/images/logo.png" 
+               alt="شعار الهيئة العامة للشئون البحرية" 
+               class="logo-img">
+          <div class="logo-text">
+            <h1>الهيئة العامة للشئون البحرية</h1>
+            <p>نظام تسجيل السفن الإلكتروني</p>
+          </div>
+        </div>
+                <i class="fas fa-ship"></i>
+                <h1>نظام تسجيل السفن</h1>
+            </div>
+            <div>
+                <button class="btn btn-light" onclick="goBack()">
+                    <i class="fas fa-arrow-right"></i> العودة
+                </button>
+            </div>
+        </nav>
+
+        <!-- منطقة التحميل -->
+        <div id="loadingIndicator" class="loading">
+            <i class="fas fa-circle-notch fa-spin"></i>
+            <h3>جاري تحميل بيانات الطلب...</h3>
+        </div>
+
+        <!-- محتوى الصفحة (مخفي في البداية) -->
+        <div id="applicationContent" style="display: none;">
+            <!-- رأس الصفحة مع الحالة -->
+            <div class="status-header">
+                <div class="status-info">
+                    <div>
+                        <span class="application-number" id="applicationNumber">---</span>
+                        <div class="application-date" id="submissionDate">---</div>
+                    </div>
+                    <span class="status-badge" id="statusBadge">---</span>
+                </div>
+                <div>
+                    <button class="btn btn-outline" onclick="printApplication()">
+                        <i class="fas fa-print"></i> طباعة
+                    </button>
+                </div>
+            </div>
+
+            <!-- قسم جديد: معلومات الرفض والتعديل (يظهر فقط إذا كان الطلب مرفوض أو معدل) -->
+            <div id="actionInfoSection" style="display: none;" class="action-info-card">
+                <!-- سيتم ملؤها ديناميكياً -->
+            </div>
+
+            <!-- تتبع حالة الطلب المطور -->
+            <div class="tracking-section" id="trackingSection">
+                <h3 style="color: var(--primary); margin-bottom: 20px;">
+                    <i class="fas fa-chart-line"></i> تتبع حالة الطلب
+                </h3>
+                <div class="tracking-steps" id="trackingSteps">
+                    <!-- سيتم ملؤها ديناميكياً -->
+                </div>
+            </div>
+
+            <!-- شبكة المعلومات -->
+            <div class="details-grid">
+                <!-- معلومات السفينة -->
+                <div class="detail-card">
+                    <div class="card-header">
+                        <h3><i class="fas fa-ship"></i> معلومات السفينة</h3>
+                    </div>
+                    <div id="shipInfo">
+                        <!-- سيتم ملؤها ديناميكياً -->
+                    </div>
+                </div>
+
+                <!-- معلومات المالك -->
+                <div class="detail-card">
+                    <div class="card-header">
+                        <h3><i class="fas fa-user"></i> معلومات المالك</h3>
+                    </div>
+                    <div id="ownerInfo">
+                        <!-- سيتم ملؤها ديناميكياً -->
+                    </div>
+                </div>
+
+                <!-- معلومات الطلب + الموظفين -->
+                <div class="detail-card">
+                    <div class="card-header">
+                        <h3><i class="fas fa-file-alt"></i> تفاصيل الطلب</h3>
+                    </div>
+                    <div id="applicationInfo">
+                        <!-- سيتم ملؤها ديناميكياً -->
+                    </div>
+                </div>
+
+                <!-- معلومات الفحص (إذا وجدت) -->
+                <div class="detail-card" id="inspectionCard">
+                    <div class="card-header">
+                        <h3><i class="fas fa-clipboard-check"></i> معلومات الفحص</h3>
+                    </div>
+                    <div id="inspectionInfo">
+                        <!-- سيتم ملؤها ديناميكياً -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- المستندات المرفقة -->
+            <div class="detail-card" style="margin-bottom: 30px;">
+                <div class="card-header">
+                    <h3><i class="fas fa-file"></i> المستندات المرفقة</h3>
+                </div>
+                <div style="overflow-x: auto;">
+                    <table class="documents-table" id="documentsTable">
+                        <thead>
+                            <tr>
+                                <th>نوع المستند</th>
+                                <th>رقم المستند</th>
+                                <th>تاريخ الإصدار</th>
+                                <th>جهة الإصدار</th>
+                                <th>حالة التحقق</th>
+                                <th>الإجراءات</th>
+                            </tr>
+                        </thead>
+                        <tbody id="documentsBody">
+                            <tr>
+                                <td colspan="6" style="text-align: center;">لا توجد مستندات مرفقة</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- سجل المراجعات المطور -->
+            <div class="detail-card" style="margin-bottom: 30px;">
+                <div class="card-header">
+                    <h3><i class="fas fa-history"></i> سجل المراجعات والإجراءات</h3>
+                </div>
+                <div id="reviewsList" class="review-timeline">
+                    <!-- سيتم ملؤها ديناميكياً -->
+                </div>
+            </div>
+
+            <!-- شريط الإجراءات -->
+            <div class="action-bar" id="actionBar">
+                <!-- سيتم ملؤها ديناميكياً حسب الصلاحيات -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ================================================
+        // تهيئة Supabase
+        // ================================================
+        const SUPABASE_URL = 'https://your-project-id.supabase.co';
+        const SUPABASE_ANON_KEY = 'your-anon-key';
+        
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+            auth: {
+                autoRefreshToken: true,
+                persistSession: true
+            }
+        });
+
+        // ================================================
+        // المتغيرات العامة
+        // ================================================
+        let currentUser = null;
+        let currentApplication = null;
+        let applicationId = null;
+
+        // ================================================
+        // تحميل الصفحة
+        // ================================================
+        document.addEventListener('DOMContentLoaded', async function() {
+            await checkAuth();
+            
+            // الحصول على معرف الطلب من URL
+            const urlParams = new URLSearchParams(window.location.search);
+            applicationId = urlParams.get('id');
+            
+            if (!applicationId) {
+                alert('معرف الطلب غير موجود');
+                goBack();
+                return;
+            }
+            
+            await loadApplicationDetails();
+        });
+
+        async function checkAuth() {
+            try {
+                const { data: { session }, error } = await supabase.auth.getSession();
+                
+                if (error || !session) {
+                    window.location.href = '../index.html';
+                    return;
+                }
+                
+                const { data: user, error: userError } = await supabase
+                    .from('users')
+                    .select('*')
+                    .eq('id', session.user.id)
+                    .single();
+                
+                if (userError || !user) {
+                    window.location.href = '../index.html';
+                    return;
+                }
+                
+                currentUser = user;
+                
+            } catch (error) {
+                console.error('خطأ في التحقق من الجلسة:', error);
+                window.location.href = '../index.html';
+            }
+        }
+
+        // ================================================
+        // تحميل تفاصيل الطلب مع معلومات الموظفين
+        // ================================================
+        async function loadApplicationDetails() {
+            try {
+                const { data, error } = await supabase
+                    .from('applications')
+                    .select(`
+                        *,
+                        ship:ships (
+                            id,
+                            ship_name_ar,
+                            ship_name_en,
+                            imo_number,
+                            registration_number,
+                            ship_type,
+                            ship_category,
+                            gross_tonnage,
+                            net_tonnage,
+                            deadweight,
+                            length,
+                            beam,
+                            depth,
+                            draft,
+                            engine_count,
+                            engine_power,
+                            engine_type,
+                            year_built,
+                            builder_name,
+                            building_country,
+                            hull_material,
+                            flag_state
+                        ),
+                        owner:owner_id (
+                            id,
+                            full_name,
+                            email,
+                            phone,
+                            national_id,
+                            passport_number,
+                            address,
+                            city,
+                            governorate,
+                            commercial_registration,
+                            tax_number
+                        ),
+                        assigned_to_user:assigned_to (
+                            id,
+                            full_name,
+                            email,
+                            position,
+                            department,
+                            branch
+                        ),
+                        rejected_by_user:users!applications_rejected_by_fkey (
+                            id,
+                            full_name,
+                            email,
+                            position,
+                            department,
+                            branch
+                        ),
+                        admin_modified_by_user:users!applications_admin_modified_by_fkey (
+                            id,
+                            full_name,
+                            email,
+                            position,
+                            department,
+                            branch
+                        ),
+                        ready_for_employee_user:users!applications_ready_for_employee_id_fkey (
+                            id,
+                            full_name,
+                            email,
+                            position,
+                            department,
+                            branch
+                        ),
+                        branch_info:branch (
+                            id,
+                            name_ar,
+                            name_en,
+                            code,
+                            city
+                        ),
+                        reviews:application_reviews (
+                            id,
+                            status,
+                            action_type,
+                            notes,
+                            created_at,
+                            reviewer:reviewer_id (
+                                id,
+                                full_name,
+                                role,
+                                position,
+                                branch
+                            )
+                        ),
+                        documents:application_documents (
+                            id,
+                            document_type,
+                            document_number,
+                            issue_date,
+                            expiry_date,
+                            issuing_authority,
+                            file_url,
+                            verification_status,
+                            verified_by,
+                            verified_at,
+                            notes
+                        ),
+                        certificates:certificates (
+                            id,
+                            certificate_number,
+                            certificate_type,
+                            issue_date,
+                            expiry_date,
+                            issued_by,
+                            status
+                        )
+                    `)
+                    .eq('id', applicationId)
+                    .single();
+                
+                if (error) throw error;
+                
+                currentApplication = data;
+                
+                // إخفاء التحميل وإظهار المحتوى
+                document.getElementById('loadingIndicator').style.display = 'none';
+                document.getElementById('applicationContent').style.display = 'block';
+                
+                // تحديث واجهة المستخدم
+                updateApplicationUI();
+                
+            } catch (error) {
+                console.error('خطأ في تحميل بيانات الطلب:', error);
+                document.getElementById('loadingIndicator').innerHTML = `
+                    <i class="fas fa-exclamation-triangle" style="color: var(--danger);"></i>
+                    <h3>حدث خطأ في تحميل بيانات الطلب</h3>
+                    <p>${error.message}</p>
+                    <button class="btn btn-primary" onclick="location.reload()" style="margin-top: 20px;">
+                        <i class="fas fa-redo"></i> إعادة المحاولة
+                    </button>
+                `;
+            }
+        }
+
+        // ================================================
+        // تحديث واجهة المستخدم
+        // ================================================
+        function updateApplicationUI() {
+            // تحديث رقم الطلب والتاريخ
+            document.getElementById('applicationNumber').textContent = 
+                currentApplication.application_number || '---';
+            document.getElementById('submissionDate').textContent = 
+                `تاريخ التقديم: ${formatDate(currentApplication.submission_date)}`;
+            
+            // تحديث حالة الطلب
+            const statusBadge = document.getElementById('statusBadge');
+            const status = currentApplication.status;
+            statusBadge.textContent = getStatusText(status);
+            statusBadge.className = `status-badge status-${status}`;
+            
+            // تحديث قسم معلومات الرفض/التعديل
+            updateActionInfoSection();
+            
+            // تحديث مسار التتبع
+            updateTrackingSteps();
+            
+            // تحديث معلومات السفينة
+            updateShipInfo();
+            
+            // تحديث معلومات المالك
+            updateOwnerInfo();
+            
+            // تحديث معلومات الطلب (مع معلومات الموظفين)
+            updateApplicationInfo();
+            
+            // تحديث معلومات الفحص
+            updateInspectionInfo();
+            
+            // تحديث المستندات
+            updateDocuments();
+            
+            // تحديث سجل المراجعات
+            updateReviews();
+            
+            // تحديث شريط الإجراءات
+            updateActionBar();
+        }
+
+        // ================================================
+        // قسم جديد: عرض معلومات الرفض/التعديل
+        // ================================================
+        function updateActionInfoSection() {
+            const section = document.getElementById('actionInfoSection');
+            const status = currentApplication.status;
+            
+            // حالات العرض: rejected_by_employee, ready_for_employee
+            if (status === 'rejected_by_employee' || status === 'ready_for_employee') {
+                section.style.display = 'block';
+                
+                let icon = '';
+                let title = '';
+                let details = '';
+                
+                if (status === 'rejected_by_employee') {
+                    icon = 'fa-times-circle';
+                    title = 'تم رفض الطلب من قبل الموظف';
+                    
+                    const rejectedBy = currentApplication.rejected_by_user;
+                    
+                    details = `
+                        <div class="action-details-grid">
+                            <div class="action-detail-item">
+                                <span class="action-detail-label">الموظف الرافض</span>
+                                <span class="action-detail-value">${rejectedBy?.full_name || '---'}</span>
+                            </div>
+                            <div class="action-detail-item">
+                                <span class="action-detail-label">الفرع</span>
+                                <span class="action-detail-value">${getBranchName(rejectedBy?.branch)}</span>
+                            </div>
+                            <div class="action-detail-item">
+                                <span class="action-detail-label">تاريخ الرفض</span>
+                                <span class="action-detail-value">${formatDate(currentApplication.rejected_at)}</span>
+                            </div>
+                        </div>
+                        <div class="action-message">
+                            <div class="action-message-title">
+                                <i class="fas fa-exclamation-circle"></i> سبب الرفض
+                            </div>
+                            <div class="action-message-content">
+                                ${currentApplication.rejection_reason || 'لم يذكر سبب'}
+                            </div>
+                        </div>
+                    `;
+                    
+                } else if (status === 'ready_for_employee') {
+                    icon = 'fa-check-circle';
+                    title = 'تم تعديل الطلب من قبل المسؤول وهو جاهز لإصدار الشهادة';
+                    
+                    const modifiedBy = currentApplication.admin_modified_by_user;
+                    const readyFor = currentApplication.ready_for_employee_user;
+                    
+                    details = `
+                        <div class="action-details-grid">
+                            <div class="action-detail-item">
+                                <span class="action-detail-label">تم التعديل بواسطة</span>
+                                <span class="action-detail-value">${modifiedBy?.full_name || 'المسؤول'}</span>
+                            </div>
+                            <div class="action-detail-item">
+                                <span class="action-detail-label">تاريخ التعديل</span>
+                                <span class="action-detail-value">${formatDate(currentApplication.admin_modified_at)}</span>
+                            </div>
+                            <div class="action-detail-item">
+                                <span class="action-detail-label">الموظف المستهدف</span>
+                                <span class="action-detail-value">${readyFor?.full_name || '---'}</span>
+                            </div>
+                            <div class="action-detail-item">
+                                <span class="action-detail-label">فرع المستهدف</span>
+                                <span class="action-detail-value">${getBranchName(readyFor?.branch)}</span>
+                            </div>
+                        </div>
+                    `;
+                    
+                    if (currentApplication.admin_notes) {
+                        details += `
+                            <div class="action-message">
+                                <div class="action-message-title">
+                                    <i class="fas fa-sticky-note"></i> ملاحظات المسؤول
+                                </div>
+                                <div class="action-message-content">
+                                    ${currentApplication.admin_notes}
+                                </div>
+                            </div>
+                        `;
+                    }
+                }
+                
+                section.innerHTML = `
+                    <div class="action-info-header">
+                        <i class="fas ${icon}"></i>
+                        <h3>${title}</h3>
+                    </div>
+                    ${details}
+                `;
+                
+            } else {
+                section.style.display = 'none';
+            }
+        }
+
+        // ================================================
+        // تتبع الحالة المطور
+        // ================================================
+        function updateTrackingSteps() {
+            const steps = [
+                { status: 'draft', title: 'مسودة', icon: 'fa-file-alt' },
+                { status: 'pending', title: 'تقديم الطلب', icon: 'fa-paper-plane' },
+                { status: 'reviewing', title: 'جاري المراجعة', icon: 'fa-search' },
+                { status: 'rejected_by_employee', title: 'رفض من موظف', icon: 'fa-times-circle' },
+                { status: 'ready_for_employee', title: 'تعديل المسؤول', icon: 'fa-edit' },
+                { status: 'certificate_issued', title: 'إصدار الشهادة', icon: 'fa-file-certificate' },
+                { status: 'completed', title: 'اكتمال التسجيل', icon: 'fa-flag' }
+            ];
+            
+            const currentStatus = currentApplication.status;
+            const submissionDate = currentApplication.submission_date;
+            const rejectedAt = currentApplication.rejected_at;
+            const modifiedAt = currentApplication.admin_modified_at;
+            const certificateIssuedAt = currentApplication.certificate_issued_at;
+            const completionDate = currentApplication.completion_date;
+            
+            let html = '';
+            steps.forEach((step, index) => {
+                let stepClass = '';
+                let stepDate = '';
+                let stepEmployee = '';
+                
+                // تحديد حالة الخطوة
+                if (step.status === 'draft') {
+                    if (currentApplication.created_at) {
+                        stepClass = 'step-completed';
+                        stepDate = formatDate(currentApplication.created_at);
+                    }
+                } else if (step.status === 'pending') {
+                    if (currentStatus !== 'draft') {
+                        stepClass = 'step-completed';
+                        stepDate = formatDate(submissionDate);
+                    }
+                } else if (step.status === 'reviewing') {
+                    if (currentStatus === 'reviewing' || 
+                        ['rejected_by_employee', 'ready_for_employee', 'certificate_issued', 'completed'].includes(currentStatus)) {
+                        stepClass = currentStatus === 'reviewing' ? 'step-active' : 'step-completed';
+                        stepDate = formatDate(currentApplication.review_date);
+                    }
+                } else if (step.status === 'rejected_by_employee') {
+                    if (currentStatus === 'rejected_by_employee' || 
+                        ['ready_for_employee', 'certificate_issued', 'completed'].includes(currentStatus)) {
+                        stepClass = currentStatus === 'rejected_by_employee' ? 'step-rejected' : 'step-completed';
+                        stepDate = formatDate(rejectedAt);
+                        if (currentApplication.rejected_by_user) {
+                            stepEmployee = `
+                                <div class="step-employee">
+                                    <i class="fas fa-user"></i> ${currentApplication.rejected_by_user.full_name}
+                                </div>
+                            `;
+                        }
+                    }
+                } else if (step.status === 'ready_for_employee') {
+                    if (currentStatus === 'ready_for_employee' || 
+                        ['certificate_issued', 'completed'].includes(currentStatus)) {
+                        stepClass = currentStatus === 'ready_for_employee' ? 'step-warning' : 'step-completed';
+                        stepDate = formatDate(modifiedAt);
+                        if (currentApplication.admin_modified_by_user) {
+                            stepEmployee = `
+                                <div class="step-employee">
+                                    <i class="fas fa-user-shield"></i> ${currentApplication.admin_modified_by_user.full_name}
+                                </div>
+                            `;
+                        }
+                    }
+                } else if (step.status === 'certificate_issued') {
+                    if (currentStatus === 'certificate_issued' || currentStatus === 'completed') {
+                        stepClass = currentStatus === 'certificate_issued' ? 'step-active' : 'step-completed';
+                        stepDate = formatDate(certificateIssuedAt);
+                        if (currentApplication.certificate_issued_by) {
+                            stepEmployee = `
+                                <div class="step-employee">
+                                    <i class="fas fa-user-tie"></i> الموظف المصدر
+                                </div>
+                            `;
+                        }
+                    }
+                } else if (step.status === 'completed') {
+                    if (currentStatus === 'completed') {
+                        stepClass = 'step-completed';
+                        stepDate = formatDate(completionDate);
+                    }
+                }
+                
+                html += `
+                    <div class="tracking-step ${stepClass}">
+                        <div class="step-icon">
+                            <i class="fas ${step.icon}"></i>
+                        </div>
+                        <div class="step-title">${step.title}</div>
+                        <div class="step-date">${stepDate || ''}</div>
+                        ${stepEmployee}
+                    </div>
+                `;
+            });
+            
+            document.getElementById('trackingSteps').innerHTML = html;
+        }
+
+        // ================================================
+        // تحديث معلومات الطلب مع الموظفين
+        // ================================================
+        function updateApplicationInfo() {
+            const assigned = currentApplication.assigned_to_user;
+            const rejectedBy = currentApplication.rejected_by_user;
+            const modifiedBy = currentApplication.admin_modified_by_user;
+            const readyFor = currentApplication.ready_for_employee_user;
+            
+            let html = `
+                <div class="info-row">
+                    <span class="info-label">نوع الطلب:</span>
+                    <span class="info-value">${getApplicationTypeText(currentApplication.application_type)}</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">الفرع:</span>
+                    <span class="info-value">${currentApplication.branch_info?.name_ar || getBranchName(currentApplication.branch)}</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">تاريخ التقديم:</span>
+                    <span class="info-value">${formatDate(currentApplication.submission_date)}</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">آخر تحديث:</span>
+                    <span class="info-value">${formatDate(currentApplication.updated_at)}</span>
+                </div>
+            `;
+            
+            // الموظف المسؤول
+            if (assigned) {
+                html += `
+                    <div class="info-row" style="background: rgba(23, 162, 184, 0.05);">
+                        <span class="info-label">الموظف المسؤول:</span>
+                        <span class="info-value">
+                            <div class="employee-mini-card" style="margin-top: -5px;">
+                                <div class="employee-mini-avatar">
+                                    <i class="fas fa-user"></i>
+                                </div>
+                                <div class="employee-mini-info">
+                                    <span class="employee-mini-name">${assigned.full_name}</span>
+                                    <span class="employee-mini-branch">${assigned.position} - ${getBranchName(assigned.branch)}</span>
+                                </div>
+                            </div>
+                        </span>
+                    </div>
+                `;
+            }
+            
+            // الموظف الرافض (يظهر فقط إذا كان هناك رفض)
+            if (rejectedBy) {
+                html += `
+                    <div class="info-row" style="background: rgba(220, 53, 69, 0.05);">
+                        <span class="info-label">الموظف الرافض:</span>
+                        <span class="info-value">
+                            <div class="employee-mini-card" style="margin-top: -5px;">
+                                <div class="employee-mini-avatar" style="background: var(--danger);">
+                                    <i class="fas fa-user"></i>
+                                </div>
+                                <div class="employee-mini-info">
+                                    <span class="employee-mini-name">${rejectedBy.full_name}</span>
+                                    <span class="employee-mini-branch">${getBranchName(rejectedBy.branch)}</span>
+                                </div>
+                            </div>
+                        </span>
+                    </div>
+                `;
+            }
+            
+            // المسؤول الذي عدل الطلب
+            if (modifiedBy) {
+                html += `
+                    <div class="info-row" style="background: rgba(255, 193, 7, 0.05);">
+                        <span class="info-label">تم التعديل بواسطة:</span>
+                        <span class="info-value">
+                            <div class="employee-mini-card" style="margin-top: -5px;">
+                                <div class="employee-mini-avatar" style="background: var(--warning);">
+                                    <i class="fas fa-user-shield"></i>
+                                </div>
+                                <div class="employee-mini-info">
+                                    <span class="employee-mini-name">${modifiedBy.full_name}</span>
+                                    <span class="employee-mini-branch">${modifiedBy.position}</span>
+                                </div>
+                            </div>
+                        </span>
+                    </div>
+                `;
+            }
+            
+            // الموظف المستهدف (لإصدار الشهادة)
+            if (readyFor) {
+                html += `
+                    <div class="info-row" style="background: rgba(40, 167, 69, 0.05);">
+                        <span class="info-label">الموظف المستهدف:</span>
+                        <span class="info-value">
+                            <div class="employee-mini-card" style="margin-top: -5px;">
+                                <div class="employee-mini-avatar" style="background: var(--success);">
+                                    <i class="fas fa-user"></i>
+                                </div>
+                                <div class="employee-mini-info">
+                                    <span class="employee-mini-name">${readyFor.full_name}</span>
+                                    <span class="employee-mini-branch">${getBranchName(readyFor.branch)}</span>
+                                </div>
+                            </div>
+                        </span>
+                    </div>
+                `;
+            }
+            
+            document.getElementById('applicationInfo').innerHTML = html;
+        }
+
+        // ================================================
+        // تحديث سجل المراجعات مع تمييز الإجراءات
+        // ================================================
+        function updateReviews() {
+            const reviews = currentApplication.reviews || [];
+            const container = document.getElementById('reviewsList');
+            
+            if (reviews.length === 0) {
+                container.innerHTML = '<p style="color: #64748b; text-align: center;">لا توجد مراجعات سابقة</p>';
+                return;
+            }
+            
+            let html = '';
+            reviews.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+            
+            reviews.forEach(review => {
+                let reviewClass = '';
+                let iconColor = '';
+                let iconClass = '';
+                
+                // تحديد نوع المراجعة
+                if (review.status === 'rejected' || review.action_type === 'reject') {
+                    reviewClass = 'rejection';
+                    iconColor = '#dc3545';
+                    iconClass = 'fa-times-circle';
+                } else if (review.action_type === 'modify' || review.status === 'ready_for_employee') {
+                    reviewClass = 'modification';
+                    iconColor = '#ffc107';
+                    iconClass = 'fa-edit';
+                } else if (review.status === 'approved') {
+                    reviewClass = 'approval';
+                    iconColor = '#28a745';
+                    iconClass = 'fa-check-circle';
+                } else {
+                    iconColor = '#1e4b7a';
+                    iconClass = 'fa-comment';
+                }
+                
+                html += `
+                    <div class="review-item ${reviewClass}">
+                        <div class="review-icon" style="background: ${iconColor};">
+                            <i class="fas ${iconClass}"></i>
+                        </div>
+                        <div class="review-content">
+                            <div class="review-header">
+                                <div>
+                                    <span class="reviewer-name">${review.reviewer?.full_name || 'موظف النظام'}</span>
+                                    <span class="reviewer-role">${review.reviewer?.position || ''}</span>
+                                </div>
+                                <span class="review-date">${formatDateTime(review.created_at)}</span>
+                            </div>
+                            <span class="review-action" style="background: ${iconColor}20; color: ${iconColor}; border: 1px solid ${iconColor}40;">
+                                ${getStatusText(review.status) || getActionTypeText(review.action_type)}
+                            </span>
+                            <div class="review-notes">
+                                ${review.notes || 'لا توجد ملاحظات'}
+                            </div>
+                            ${review.reviewer?.branch ? `
+                                <div class="review-branch">
+                                    <i class="fas fa-building"></i> ${getBranchName(review.reviewer.branch)}
+                                </div>
+                            ` : ''}
+                        </div>
+                    </div>
+                `;
+            });
+            
+            container.innerHTML = html;
+        }
+
+        // ================================================
+        // تحديث معلومات السفينة
+        // ================================================
+        function updateShipInfo() {
+            const ship = currentApplication.ship;
+            if (!ship) {
+                document.getElementById('shipInfo').innerHTML = '<p style="color: #64748b;">لا توجد معلومات</p>';
+                return;
+            }
+            
+            let html = `
+                <div class="info-row">
+                    <span class="info-label">اسم السفينة:</span>
+                    <span class="info-value">${ship.ship_name_ar || '---'}</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">الاسم بالإنجليزية:</span>
+                    <span class="info-value">${ship.ship_name_en || '---'}</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">رقم IMO:</span>
+                    <span class="info-value">${ship.imo_number || '---'}</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">رقم التسجيل:</span>
+                    <span class="info-value">${ship.registration_number || '---'}</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">نوع السفينة:</span>
+                    <span class="info-value">${ship.ship_type || '---'}</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">الحمولة الإجمالية:</span>
+                    <span class="info-value">${ship.gross_tonnage || '---'} طن</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">الحمولة الصافية:</span>
+                    <span class="info-value">${ship.net_tonnage || '---'} طن</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">الطول:</span>
+                    <span class="info-value">${ship.length || '---'} م</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">العرض:</span>
+                    <span class="info-value">${ship.beam || '---'} م</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">العمق:</span>
+                    <span class="info-value">${ship.depth || '---'} م</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">سنة الصنع:</span>
+                    <span class="info-value">${ship.year_built || '---'}</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">بلد الصنع:</span>
+                    <span class="info-value">${ship.building_country || '---'}</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">مادة الهيكل:</span>
+                    <span class="info-value">${ship.hull_material || '---'}</span>
+                </div>
+            `;
+            
+            document.getElementById('shipInfo').innerHTML = html;
+        }
+
+        // ================================================
+        // تحديث معلومات المالك
+        // ================================================
+        function updateOwnerInfo() {
+            const owner = currentApplication.owner;
+            if (!owner) {
+                document.getElementById('ownerInfo').innerHTML = '<p style="color: #64748b;">لا توجد معلومات</p>';
+                return;
+            }
+            
+            let html = `
+                <div class="info-row">
+                    <span class="info-label">الاسم:</span>
+                    <span class="info-value">${owner.full_name || '---'}</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">البريد الإلكتروني:</span>
+                    <span class="info-value">${owner.email || '---'}</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">رقم الهاتف:</span>
+                    <span class="info-value">${owner.phone || '---'}</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">رقم الهوية:</span>
+                    <span class="info-value">${owner.national_id || '---'}</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">العنوان:</span>
+                    <span class="info-value">${owner.address || '---'}</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">المدينة:</span>
+                    <span class="info-value">${owner.city || '---'}</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">المحافظة:</span>
+                    <span class="info-value">${owner.governorate || '---'}</span>
+                </div>
+            `;
+            
+            if (owner.commercial_registration) {
+                html += `
+                    <div class="info-row">
+                        <span class="info-label">السجل التجاري:</span>
+                        <span class="info-value">${owner.commercial_registration}</span>
+                    </div>
+                `;
+            }
+            
+            document.getElementById('ownerInfo').innerHTML = html;
+        }
+
+        // ================================================
+        // تحديث معلومات الفحص
+        // ================================================
+        function updateInspectionInfo() {
+            const inspection = currentApplication.inspection;
+            
+            if (!inspection) {
+                document.getElementById('inspectionCard').style.display = 'none';
+                return;
+            }
+            
+            document.getElementById('inspectionCard').style.display = 'block';
+            
+            let html = `
+                <div class="info-row">
+                    <span class="info-label">تاريخ الفحص:</span>
+                    <span class="info-value">${formatDate(inspection.inspection_date)}</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">الموقع:</span>
+                    <span class="info-value">${inspection.location || '---'}</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">الجهة المنفذة:</span>
+                    <span class="info-value">${inspection.authority || '---'}</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">نتيجة الفحص:</span>
+                    <span class="info-value">${inspection.result || '---'}</span>
+                </div>
+            `;
+            
+            document.getElementById('inspectionInfo').innerHTML = html;
+        }
+
+        // ================================================
+        // تحديث المستندات
+        // ================================================
+        function updateDocuments() {
+            const documents = currentApplication.documents || [];
+            const tbody = document.getElementById('documentsBody');
+            
+            if (documents.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="6" style="text-align: center;">لا توجد مستندات مرفقة</td></tr>';
+                return;
+            }
+            
+            let html = '';
+            documents.forEach(doc => {
+                const statusClass = {
+                    'verified': 'status-verified',
+                    'pending': 'status-pending',
+                    'rejected': 'status-missing'
+                }[doc.verification_status] || 'status-pending';
+                
+                const statusText = {
+                    'verified': 'موثق',
+                    'pending': 'قيد التحقق',
+                    'rejected': 'مرفوض'
+                }[doc.verification_status] || doc.verification_status;
+                
+                html += `
+                    <tr>
+                        <td>${getDocumentTypeText(doc.document_type)}</td>
+                        <td>${doc.document_number || '---'}</td>
+                        <td>${formatDate(doc.issue_date)}</td>
+                        <td>${doc.issuing_authority || '---'}</td>
+                        <td><span class="document-status ${statusClass}">${statusText}</span></td>
+                        <td>
+                            <button class="btn btn-sm btn-outline" onclick="viewDocument('${doc.file_url}')">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            });
+            
+            tbody.innerHTML = html;
+        }
+
+        // ================================================
+        // تحديث شريط الإجراءات
+        // ================================================
+        function updateActionBar() {
+            const actionBar = document.getElementById('actionBar');
+            let html = '';
+            
+            // إجراءات حسب دور المستخدم وحالة الطلب
+            if (currentUser.role === 'admin') {
+                if (currentApplication.status === 'rejected_by_employee') {
+                    html += `
+                        <button class="btn btn-warning" onclick="window.opener?.openEditModal('${applicationId}'); window.close();">
+                            <i class="fas fa-edit"></i> تعديل الطلب
+                        </button>
+                    `;
+                }
+            }
+            
+            if (currentUser.role === 'branch_employee') {
+                if (currentApplication.status === 'ready_for_employee' && 
+                    currentApplication.ready_for_employee_id === currentUser.id) {
+                    html += `
+                        <button class="btn btn-success" onclick="window.opener?.openCertificateModal('${applicationId}'); window.close();">
+                            <i class="fas fa-file-certificate"></i> إصدار شهادة
+                        </button>
+                    `;
+                }
+            }
+            
+            if (currentUser.role === 'ship_owner' && 
+                currentUser.id === currentApplication.owner_id) {
+                if (currentApplication.status === 'pending' || currentApplication.status === 'needs_action') {
+                    html += `
+                        <button class="btn btn-primary" onclick="respondToApplication()">
+                            <i class="fas fa-reply"></i> الرد على الطلب
+                        </button>
+                    `;
+                }
+                if (currentApplication.status === 'certificate_issued') {
+                    html += `
+                        <button class="btn btn-success" onclick="printCertificate()">
+                            <i class="fas fa-print"></i> طباعة الشهادة
+                        </button>
+                    `;
+                }
+            }
+            
+            if (html === '') {
+                html = '<p style="color: #64748b;">لا توجد إجراءات متاحة</p>';
+            }
+            
+            actionBar.innerHTML = html;
+        }
+
+        // ================================================
+        // دوال مساعدة
+        // ================================================
+        function formatDate(date) {
+            if (!date) return '---';
+            const d = new Date(date);
+            const year = d.getFullYear();
+            const month = String(d.getMonth() + 1).padStart(2, '0');
+            const day = String(d.getDate()).padStart(2, '0');
+            return `${year}-${month}-${day}`;
+        }
+
+        function formatDateTime(date) {
+            if (!date) return '---';
+            const d = new Date(date);
+            return d.toLocaleString('ar-YE');
+        }
+
+        function getBranchName(branch) {
+            const branches = {
+                'main': 'المقر الرئيسي',
+                'aden': 'عدن',
+                'mukalla': 'المكلا',
+                'hodeidah': 'الحديدة',
+                'salif': 'الصليف',
+                'mocha': 'المخا',
+                'socotra': 'سقطرى'
+            };
+            return branches[branch] || branch || '---';
+        }
+
+        function getStatusText(status) {
+            const statusMap = {
+                'draft': 'مسودة',
+                'pending': 'قيد المراجعة',
+                'reviewing': 'جاري المعالجة',
+                'approved': 'مقبول',
+                'rejected': 'مرفوض',
+                'rejected_by_employee': 'مرفوض من موظف',
+                'ready_for_employee': 'جاهز للموظف',
+                'certificate_issued': 'تم إصدار الشهادة',
+                'completed': 'مكتمل',
+                'cancelled': 'ملغي'
+            };
+            return statusMap[status] || status;
+        }
+
+        function getApplicationTypeText(type) {
+            const typeMap = {
+                'new': 'تسجيل جديد',
+                'renewal': 'تجديد',
+                'transfer': 'نقل ملكية',
+                'amendment': 'تعديل بيانات',
+                'cancellation': 'إلغاء تسجيل'
+            };
+            return typeMap[type] || type;
+        }
+
+        function getDocumentTypeText(type) {
+            const typeMap = {
+                'ownership': 'وثيقة ملكية',
+                'national_id': 'بطاقة هوية',
+                'commercial_registry': 'سجل تجاري',
+                'tax_card': 'بطاقة ضريبية',
+                'inspection': 'تقرير فحص',
+                'insurance': 'وثيقة تأمين',
+                'certificate': 'شهادة جودة'
+            };
+            return typeMap[type] || type;
+        }
+
+        function getActionTypeText(type) {
+            const typeMap = {
+                'review': 'مراجعة',
+                'reject': 'رفض',
+                'approve': 'قبول',
+                'modify': 'تعديل',
+                'assign': 'تعيين'
+            };
+            return typeMap[type] || type;
+        }
+
+        function viewDocument(url) {
+            window.open(url, '_blank');
+        }
+
+        function goBack() {
+            window.history.back();
+        }
+
+        function printApplication() {
+            window.print();
+        }
+
+        function respondToApplication() {
+            alert('سيتم إضافة نافذة الرد قريباً');
+        }
+
+        function printCertificate() {
+            const cert = currentApplication.certificates?.[0];
+            if (cert) {
+                window.open(`print-certificate.html?cert=${cert.id}`, '_blank');
+            } else {
+                alert('لا توجد شهادة للطباعة');
+            }
+        }
+    </script>
+    <!-- تحميل مكتبة Supabase -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<!-- تحميل ملف auth.js الذي يحتوي على المفاتيح -->
+<script src="../js/auth.js"></script>
+</body>
+</html>

@@ -1,0 +1,2199 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>لوحة تحكم المسؤول - نظام تسجيل السفن</title>
+    
+    <!-- Fonts & Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Arabic:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    
+    <!-- Supabase -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <!-- أيقونة الموقع الأساسية -->
+    <link rel="icon" type="image/png" sizes="16x16" href="../assets/images/favicon.ico">>
+    <style>
+        /* ===== المتغيرات العامة ===== */
+        :root {
+            --primary: #1e4b7a;
+            --primary-dark: #0f2c4a;
+            --primary-light: #2c7be5;
+            --secondary: #8b7355;
+            --success: #28a745;
+            --warning: #ffc107;
+            --danger: #dc3545;
+            --info: #17a2b8;
+            --light: #f8f9fa;
+            --dark: #343a40;
+            --white: #ffffff;
+            --shadow-sm: 0 2px 4px rgba(0,0,0,0.04);
+            --shadow-md: 0 4px 12px rgba(0,0,0,0.08);
+            --shadow-lg: 0 8px 24px rgba(0,0,0,0.12);
+            --radius-sm: 6px;
+            --radius-md: 10px;
+            --radius-lg: 16px;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Noto Sans Arabic', sans-serif;
+            background: linear-gradient(135deg, #f1f5f9 0%, #e6eef5 100%);
+            color: var(--dark);
+            line-height: 1.6;
+        }
+
+        /* ===== شريط التنقل ===== */
+        .main-header {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            color: white;
+            padding: 16px 32px;
+            box-shadow: var(--shadow-md);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .header-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            max-width: 1600px;
+            margin: 0 auto;
+        }
+
+        .logo-section {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .site-logo {
+            width: 50px;
+            height: 50px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.8rem;
+            color: white;
+        }
+
+        .logo-text h1 {
+            margin: 0;
+            font-size: 1.5rem;
+            font-weight: 700;
+        }
+
+        .logo-text p {
+            margin: 5px 0 0;
+            font-size: 0.85rem;
+            opacity: 0.9;
+        }
+
+        .user-controls {
+            display: flex;
+            align-items: center;
+            gap: 25px;
+        }
+
+        .user-profile {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            background: rgba(255,255,255,0.1);
+            padding: 8px 20px;
+            border-radius: 30px;
+        }
+
+        .user-avatar {
+            width: 45px;
+            height: 45px;
+            background: var(--secondary);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            border: 2px solid rgba(255,255,255,0.3);
+        }
+
+        .user-details {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .user-name {
+            font-weight: 700;
+            font-size: 1rem;
+        }
+
+        .user-role {
+            font-size: 0.8rem;
+            opacity: 0.9;
+        }
+
+        /* ===== تخطيط لوحة التحكم ===== */
+        .dashboard-wrapper {
+            display: flex;
+            min-height: calc(100vh - 82px);
+            max-width: 1600px;
+            margin: 20px auto;
+            gap: 20px;
+            padding: 0 20px;
+        }
+
+        /* ===== الشريط الجانبي ===== */
+        .admin-sidebar {
+            width: 280px;
+            background: white;
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-sm);
+            position: sticky;
+            top: 102px;
+            height: fit-content;
+            overflow: hidden;
+        }
+
+        .sidebar-header {
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: white;
+            padding: 25px;
+        }
+
+        .admin-profile {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .admin-avatar {
+            width: 70px;
+            height: 70px;
+            background: var(--secondary);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.8rem;
+            border: 3px solid rgba(255,255,255,0.3);
+        }
+
+        .admin-info h4 {
+            color: white;
+            margin: 0 0 5px;
+            font-size: 1.2rem;
+        }
+
+        .admin-info p {
+            color: rgba(255,255,255,0.9);
+            margin: 0;
+            font-size: 0.9rem;
+        }
+
+        .admin-role {
+            display: inline-block;
+            background: var(--secondary);
+            color: white;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            margin-top: 8px;
+        }
+
+        .sidebar-menu {
+            list-style: none;
+            padding: 20px 0;
+        }
+
+        .menu-item {
+            margin-bottom: 5px;
+        }
+
+        .menu-link {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            padding: 12px 25px;
+            color: var(--dark);
+            text-decoration: none;
+            transition: all 0.3s ease;
+            border-right: 4px solid transparent;
+            font-weight: 500;
+        }
+
+        .menu-link:hover {
+            background: rgba(30, 75, 122, 0.05);
+            color: var(--primary);
+            border-right-color: var(--primary);
+        }
+
+        .menu-link.active {
+            background: rgba(30, 75, 122, 0.1);
+            color: var(--primary);
+            border-right-color: var(--primary);
+        }
+
+        .menu-icon {
+            width: 24px;
+            text-align: center;
+            font-size: 1.1rem;
+        }
+
+        .menu-badge {
+            margin-right: auto;
+            background: var(--primary);
+            color: white;
+            padding: 3px 10px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        /* ===== المحتوى الرئيسي ===== */
+        .admin-content {
+            flex: 1;
+            min-width: 0;
+        }
+
+        /* ===== بطاقات الإحصائيات ===== */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: white;
+            border-radius: var(--radius-lg);
+            padding: 25px;
+            box-shadow: var(--shadow-sm);
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            transition: all 0.3s ease;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .stat-icon {
+            width: 70px;
+            height: 70px;
+            border-radius: var(--radius-md);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.8rem;
+            color: white;
+        }
+
+        .stat-content {
+            flex: 1;
+        }
+
+        .stat-value {
+            font-size: 2.2rem;
+            font-weight: 700;
+            color: var(--primary);
+            display: block;
+            line-height: 1;
+            margin-bottom: 5px;
+        }
+
+        .stat-label {
+            color: #64748b;
+            font-size: 0.95rem;
+            display: block;
+        }
+
+        /* ===== الرسوم البيانية ===== */
+        .charts-section {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 25px;
+            margin-bottom: 30px;
+        }
+
+        .chart-card {
+            background: white;
+            border-radius: var(--radius-lg);
+            padding: 25px;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .chart-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .chart-header h4 {
+            color: var(--primary);
+            margin: 0;
+            font-size: 1.2rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .chart-container {
+            height: 280px;
+            position: relative;
+        }
+
+        /* ===== الأقسام ===== */
+        .section-card {
+            background: white;
+            border-radius: var(--radius-lg);
+            padding: 25px;
+            box-shadow: var(--shadow-sm);
+            margin-bottom: 30px;
+        }
+
+        .section-title {
+            color: var(--primary);
+            margin-bottom: 25px;
+            font-size: 1.4rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #e2e8f0;
+        }
+
+        /* ===== الجداول ===== */
+        .table-responsive {
+            overflow-x: auto;
+        }
+
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .data-table th {
+            background: linear-gradient(135deg, rgba(30, 75, 122, 0.05), rgba(15, 44, 74, 0.05));
+            color: var(--primary);
+            padding: 15px;
+            text-align: right;
+            font-weight: 700;
+            border-bottom: 2px solid var(--secondary);
+        }
+
+        .data-table td {
+            padding: 15px;
+            border-bottom: 1px solid #e2e8f0;
+            color: var(--dark);
+        }
+
+        .data-table tbody tr {
+            transition: all 0.3s ease;
+        }
+
+        .data-table tbody tr:hover {
+            background: rgba(30, 75, 122, 0.02);
+        }
+
+        .data-table tr.rejected-row {
+            background: rgba(220, 53, 69, 0.05);
+            border-right: 4px solid var(--danger);
+        }
+
+        /* ===== علامات الحالة ===== */
+        .status-badge {
+            display: inline-block;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+        .status-approved {
+            background: rgba(40, 167, 69, 0.1);
+            color: var(--success);
+            border: 1px solid rgba(40, 167, 69, 0.2);
+        }
+
+        .status-pending {
+            background: rgba(255, 193, 7, 0.1);
+            color: #856404;
+            border: 1px solid rgba(255, 193, 7, 0.2);
+        }
+
+        .status-reviewing {
+            background: rgba(23, 162, 184, 0.1);
+            color: var(--info);
+            border: 1px solid rgba(23, 162, 184, 0.2);
+        }
+
+        .status-rejected {
+            background: rgba(220, 53, 69, 0.1);
+            color: var(--danger);
+            border: 1px solid rgba(220, 53, 69, 0.2);
+        }
+
+        .status-rejected-by-employee {
+            background: rgba(220, 53, 69, 0.15);
+            color: var(--danger);
+            border: 1px solid rgba(220, 53, 69, 0.3);
+            font-weight: 700;
+        }
+
+        /* ===== بطاقة معلومات الموظف ===== */
+        .employee-info-card {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .employee-mini-avatar {
+            width: 40px;
+            height: 40px;
+            background: var(--secondary);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1rem;
+        }
+
+        .employee-mini-details {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .employee-mini-name {
+            font-weight: 700;
+            color: var(--dark);
+        }
+
+        .employee-mini-branch {
+            font-size: 0.8rem;
+            color: #64748b;
+        }
+
+        /* ===== أزرار الإجراءات ===== */
+        .action-btn {
+            padding: 8px 12px;
+            border: none;
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .btn-view {
+            background: rgba(23, 162, 184, 0.1);
+            color: var(--info);
+            border: 1px solid rgba(23, 162, 184, 0.2);
+        }
+
+        .btn-view:hover {
+            background: rgba(23, 162, 184, 0.2);
+            transform: translateY(-2px);
+        }
+
+        .btn-edit {
+            background: rgba(255, 193, 7, 0.1);
+            color: #856404;
+            border: 1px solid rgba(255, 193, 7, 0.2);
+        }
+
+        .btn-edit:hover {
+            background: rgba(255, 193, 7, 0.2);
+            transform: translateY(-2px);
+        }
+
+        .btn-return {
+            background: rgba(40, 167, 69, 0.1);
+            color: var(--success);
+            border: 1px solid rgba(40, 167, 69, 0.2);
+        }
+
+        .btn-return:hover {
+            background: rgba(40, 167, 69, 0.2);
+            transform: translateY(-2px);
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: var(--radius-sm);
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md);
+        }
+
+        /* ===== التبويبات ===== */
+        .applications-tabs {
+            display: flex;
+            gap: 5px;
+            margin-bottom: 25px;
+            border-bottom: 2px solid #e2e8f0;
+            padding-bottom: 5px;
+            flex-wrap: wrap;
+        }
+
+        .tab-btn {
+            padding: 12px 25px;
+            background: none;
+            border: none;
+            border-bottom: 3px solid transparent;
+            color: #64748b;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 0.95rem;
+        }
+
+        .tab-btn:hover {
+            color: var(--primary);
+        }
+
+        .tab-btn.active {
+            color: var(--secondary);
+            border-bottom-color: var(--secondary);
+        }
+
+        .tab-badge {
+            background: var(--secondary);
+            color: white;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            margin-right: 8px;
+        }
+
+        .tab-badge.danger {
+            background: var(--danger);
+        }
+
+        /* ===== نافذة تعديل السفينة ===== */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.5);
+            z-index: 2000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-content {
+            background: white;
+            width: 90%;
+            max-width: 800px;
+            border-radius: var(--radius-lg);
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: white;
+            padding: 20px;
+            border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        .modal-header h3 {
+            margin: 0;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 1.8rem;
+            cursor: pointer;
+        }
+
+        .modal-body {
+            padding: 25px;
+            max-height: calc(90vh - 140px);
+            overflow-y: auto;
+        }
+
+        .modal-footer {
+            padding: 20px;
+            border-top: 1px solid #e2e8f0;
+            display: flex;
+            gap: 15px;
+            justify-content: flex-end;
+            position: sticky;
+            bottom: 0;
+            background: white;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: var(--primary);
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #e2e8f0;
+            border-radius: var(--radius-sm);
+            font-family: inherit;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(30, 75, 122, 0.1);
+        }
+
+        .section-divider {
+            margin: 30px 0 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid var(--secondary);
+            color: var(--primary);
+            font-weight: 700;
+        }
+
+        .rejection-details {
+            background: #f8fafc;
+            padding: 20px;
+            border-radius: var(--radius-md);
+            margin-bottom: 25px;
+            border-right: 4px solid var(--danger);
+        }
+
+        .rejection-details h4 {
+            color: var(--danger);
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .rejection-meta {
+            display: flex;
+            gap: 30px;
+            margin-bottom: 15px;
+            color: #64748b;
+            font-size: 0.9rem;
+        }
+
+        .rejection-reason {
+            background: white;
+            padding: 15px;
+            border-radius: var(--radius-sm);
+            color: var(--dark);
+            line-height: 1.6;
+        }
+
+        @media (max-width: 1200px) {
+            .dashboard-wrapper {
+                flex-direction: column;
+            }
+            .admin-sidebar {
+                width: 100%;
+                position: static;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+            .charts-section {
+                grid-template-columns: 1fr;
+            }
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- شريط التنقل -->
+    <header class="main-header">
+        <div class="header-container">
+           <div class="logo-section">
+          <img src="../assets/images/logo.png" 
+               alt="شعار الهيئة العامة للشئون البحرية" 
+               class="logo-img">
+          <div class="logo-text">
+            <h1>الهيئة العامة للشئون البحرية</h1>
+            <p>نظام تسجيل السفن الإلكتروني</p>
+          </div>
+        </div>
+            
+            <div class="user-controls">
+                <div class="user-profile" id="userProfile">
+                    <div class="user-avatar">
+                        <i class="fas fa-user-shield"></i>
+                    </div>
+                    <div class="user-details">
+                        <span class="user-name" id="adminName">جاري التحميل...</span>
+                        <span class="user-role">مسؤول النظام</span>
+                    </div>
+                </div>
+                
+                <button class="btn btn-primary" onclick="logout()">
+                    <i class="fas fa-sign-out-alt"></i> تسجيل الخروج
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <div class="dashboard-wrapper">
+        <!-- الشريط الجانبي -->
+        <aside class="admin-sidebar">
+            <div class="sidebar-header">
+                <div class="admin-profile">
+                    <div class="admin-avatar">
+                        <i class="fas fa-user-shield"></i>
+                    </div>
+                    <div class="admin-info">
+                        <h4 id="sidebarAdminName">جاري التحميل...</h4>
+                        <p>المدير العام للنظام</p>
+                        <span class="admin-role">مسؤول النظام</span>
+                    </div>
+                </div>
+            </div>
+
+            <ul class="sidebar-menu">
+                <li class="menu-item">
+                    <a href="#" class="menu-link active" onclick="showSection('dashboard'); return false;">
+                        <i class="fas fa-tachometer-alt menu-icon"></i>
+                        <span>لوحة التحكم</span>
+                    </a>
+                </li>
+                <li class="menu-item">
+                    <a href="#" class="menu-link" onclick="showSection('applications'); return false;">
+                        <i class="fas fa-ship menu-icon"></i>
+                        <span>جميع الطلبات</span>
+                        <span class="menu-badge" id="applicationsCount">0</span>
+                    </a>
+                </li>
+                <li class="menu-item">
+                    <a href="#" class="menu-link" onclick="showSection('rejected'); return false;">
+                        <i class="fas fa-times-circle menu-icon" style="color: var(--danger);"></i>
+                        <span>طلبات مرفوضة من موظفين</span>
+                        <span class="menu-badge" id="rejectedCount" style="background: var(--danger);">0</span>
+                    </a>
+                </li>
+                <li class="menu-item">
+                    <a href="#" class="menu-link" onclick="showSection('employees'); return false;">
+                        <i class="fas fa-users menu-icon"></i>
+                        <span>إدارة الموظفين</span>
+                        <span class="menu-badge" id="employeesCount">0</span>
+                    </a>
+                </li>
+                <li class="menu-item">
+                    <a href="#" class="menu-link" onclick="showSection('ships'); return false;">
+                        <i class="fas fa-ship menu-icon"></i>
+                        <span>السفن المسجلة</span>
+                        <span class="menu-badge" id="shipsCount">0</span>
+                    </a>
+                </li>
+                <li class="menu-item">
+                    <a href="#" class="menu-link" onclick="showSection('reports'); return false;">
+                        <i class="fas fa-chart-bar menu-icon"></i>
+                        <span>التقارير</span>
+                    </a>
+                </li>
+                <li class="menu-item" style="margin-top: 30px;">
+                    <a href="#" class="menu-link" onclick="logout(); return false;">
+                        <i class="fas fa-sign-out-alt menu-icon"></i>
+                        <span>تسجيل الخروج</span>
+                    </a>
+                </li>
+            </ul>
+        </aside>
+
+        <!-- المحتوى الرئيسي -->
+        <main class="admin-content">
+            <!-- قسم لوحة التحكم -->
+            <div id="dashboardSection" style="display: block;">
+                <!-- بطاقات الإحصائيات -->
+                <div class="stats-grid" id="statsContainer">
+                    <div class="stat-card">
+                        <div class="stat-icon" style="background: linear-gradient(135deg, var(--primary), var(--primary-dark));">
+                            <i class="fas fa-ship"></i>
+                        </div>
+                        <div class="stat-content">
+                            <span class="stat-value" id="totalShipsStat">0</span>
+                            <span class="stat-label">إجمالي السفن المسجلة</span>
+                        </div>
+                    </div>
+
+                    <div class="stat-card">
+                        <div class="stat-icon" style="background: linear-gradient(135deg, var(--success), #1e7e34);">
+                            <i class="fas fa-check-circle"></i>
+                        </div>
+                        <div class="stat-content">
+                            <span class="stat-value" id="activeShipsStat">0</span>
+                            <span class="stat-label">سفن نشطة</span>
+                        </div>
+                    </div>
+
+                    <div class="stat-card">
+                        <div class="stat-icon" style="background: linear-gradient(135deg, var(--warning), #e0a800);">
+                            <i class="fas fa-clock"></i>
+                        </div>
+                        <div class="stat-content">
+                            <span class="stat-value" id="pendingApplicationsStat">0</span>
+                            <span class="stat-label">طلبات قيد المراجعة</span>
+                        </div>
+                    </div>
+
+                    <div class="stat-card">
+                        <div class="stat-icon" style="background: linear-gradient(135deg, var(--danger), #c82333);">
+                            <i class="fas fa-times-circle"></i>
+                        </div>
+                        <div class="stat-content">
+                            <span class="stat-value" id="rejectedApplicationsStat">0</span>
+                            <span class="stat-label">طلبات مرفوضة من موظفين</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- الرسوم البيانية -->
+                <div class="charts-section">
+                    <div class="chart-card">
+                        <div class="chart-header">
+                            <h4><i class="fas fa-chart-line"></i> إحصائيات التسجيل الشهرية</h4>
+                        </div>
+                        <div class="chart-container">
+                            <canvas id="registrationsChart"></canvas>
+                        </div>
+                    </div>
+
+                    <div class="chart-card">
+                        <div class="chart-header">
+                            <h4><i class="fas fa-chart-pie"></i> توزيع أنواع السفن</h4>
+                        </div>
+                        <div class="chart-container">
+                            <canvas id="shipTypesChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- الطلبات المرفوضة حديثاً -->
+                <section class="section-card">
+                    <div class="section-title">
+                        <h3><i class="fas fa-times-circle" style="color: var(--danger);"></i> أحدث الطلبات المرفوضة من الموظفين</h3>
+                        <a href="#" onclick="showSection('rejected'); return false;" class="btn btn-primary">
+                            عرض الكل <i class="fas fa-arrow-left"></i>
+                        </a>
+                    </div>
+
+                    <div class="table-responsive">
+                        <table class="data-table" id="recentRejectedTable">
+                            <thead>
+                                <tr>
+                                    <th>رقم الطلب</th>
+                                    <th>اسم السفينة</th>
+                                    <th>الموظف الرافض</th>
+                                    <th>الفرع</th>
+                                    <th>سبب الرفض</th>
+                                    <th>تاريخ الرفض</th>
+                                    <th>الإجراءات</th>
+                                </tr>
+                            </thead>
+                            <tbody id="recentRejectedBody">
+                                <tr>
+                                    <td colspan="7" style="text-align: center;">جاري تحميل البيانات...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
+            </div>
+
+            <!-- قسم جميع الطلبات -->
+            <div id="applicationsSection" style="display: none;">
+                <section class="section-card">
+                    <div class="section-title">
+                        <h3><i class="fas fa-ship"></i> جميع طلبات التسجيل</h3>
+                    </div>
+
+                    <div class="applications-tabs">
+                        <button class="tab-btn active" onclick="filterApplications('all')">
+                            الكل <span class="tab-badge" id="allAppsBadge">0</span>
+                        </button>
+                        <button class="tab-btn" onclick="filterApplications('pending')">
+                            قيد المراجعة <span class="tab-badge" id="pendingAppsBadge">0</span>
+                        </button>
+                        <button class="tab-btn" onclick="filterApplications('reviewing')">
+                            جاري المعالجة <span class="tab-badge" id="reviewingAppsBadge">0</span>
+                        </button>
+                        <button class="tab-btn" onclick="filterApplications('approved')">
+                            مقبولة <span class="tab-badge" id="approvedAppsBadge">0</span>
+                        </button>
+                        <button class="tab-btn" onclick="filterApplications('rejected_by_employee')">
+                            مرفوضة من موظفين <span class="tab-badge danger" id="rejectedAppsBadge">0</span>
+                        </button>
+                    </div>
+
+                    <div class="table-responsive">
+                        <table class="data-table" id="applicationsTable">
+                            <thead>
+                                <tr>
+                                    <th>رقم الطلب</th>
+                                    <th>اسم السفينة</th>
+                                    <th>المالك</th>
+                                    <th>تاريخ التقديم</th>
+                                    <th>الفرع</th>
+                                    <th>الموظف المسؤول</th>
+                                    <th>الحالة</th>
+                                    <th>الإجراءات</th>
+                                </tr>
+                            </thead>
+                            <tbody id="applicationsBody">
+                                <tr>
+                                    <td colspan="8" style="text-align: center;">جاري تحميل البيانات...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
+            </div>
+
+            <!-- قسم الطلبات المرفوضة من الموظفين (جديد) -->
+            <div id="rejectedSection" style="display: none;">
+                <section class="section-card">
+                    <div class="section-title">
+                        <h3><i class="fas fa-times-circle" style="color: var(--danger);"></i> الطلبات المرفوضة من الموظفين</h3>
+                        <p style="color: #64748b; font-size: 0.9rem;">يمكنك تعديل بيانات هذه الطلبات وإعادتها لنفس الموظف</p>
+                    </div>
+
+                    <div class="table-responsive">
+                        <table class="data-table" id="rejectedApplicationsTable">
+                            <thead>
+                                <tr>
+                                    <th>رقم الطلب</th>
+                                    <th>اسم السفينة</th>
+                                    <th>المالك</th>
+                                    <th>الموظف الرافض</th>
+                                    <th>الفرع</th>
+                                    <th>سبب الرفض</th>
+                                    <th>تاريخ الرفض</th>
+                                    <th>الإجراءات</th>
+                                </tr>
+                            </thead>
+                            <tbody id="rejectedApplicationsBody">
+                                <tr>
+                                    <td colspan="8" style="text-align: center;">جاري تحميل البيانات...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
+            </div>
+
+            <!-- قسم إدارة الموظفين -->
+            <div id="employeesSection" style="display: none;">
+                <section class="section-card">
+                    <div class="section-title">
+                        <h3><i class="fas fa-users"></i> إدارة الموظفين</h3>
+                        <button class="btn btn-primary" onclick="showAddEmployeeModal()">
+                            <i class="fas fa-user-plus"></i> إضافة موظف
+                        </button>
+                    </div>
+
+                    <div class="table-responsive">
+                        <table class="data-table" id="employeesTable">
+                            <thead>
+                                <tr>
+                                    <th>الاسم</th>
+                                    <th>البريد الإلكتروني</th>
+                                    <th>الفرع</th>
+                                    <th>القسم</th>
+                                    <th>المسمى الوظيفي</th>
+                                    <th>الحالة</th>
+                                    <th>الإجراءات</th>
+                                </tr>
+                            </thead>
+                            <tbody id="employeesBody">
+                                <tr>
+                                    <td colspan="7" style="text-align: center;">جاري تحميل البيانات...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
+            </div>
+
+            <!-- قسم السفن المسجلة -->
+            <div id="shipsSection" style="display: none;">
+                <section class="section-card">
+                    <div class="section-title">
+                        <h3><i class="fas fa-ship"></i> السفن المسجلة</h3>
+                        <div style="display: flex; gap: 10px;">
+                            <input type="text" id="shipSearchInput" placeholder="بحث..." class="form-control" style="width: 250px;">
+                            <button class="btn btn-primary" onclick="searchShips()">
+                                <i class="fas fa-search"></i> بحث
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="table-responsive">
+                        <table class="data-table" id="shipsTable">
+                            <thead>
+                                <tr>
+                                    <th>رقم التسجيل</th>
+                                    <th>اسم السفينة</th>
+                                    <th>النوع</th>
+                                    <th>المالك</th>
+                                    <th>تاريخ التسجيل</th>
+                                    <th>تاريخ الانتهاء</th>
+                                    <th>الحالة</th>
+                                    <th>الإجراءات</th>
+                                </tr>
+                            </thead>
+                            <tbody id="shipsBody">
+                                <tr>
+                                    <td colspan="8" style="text-align: center;">جاري تحميل البيانات...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
+            </div>
+
+            <!-- قسم التقارير -->
+            <div id="reportsSection" style="display: none;">
+                <section class="section-card">
+                    <div class="section-title">
+                        <h3><i class="fas fa-chart-bar"></i> التقارير والإحصائيات</h3>
+                    </div>
+                    
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px;">
+                        <div class="stat-card">
+                            <div class="stat-icon" style="background: linear-gradient(135deg, var(--info), #117a8b);">
+                                <i class="fas fa-file-pdf"></i>
+                            </div>
+                            <div class="stat-content">
+                                <h4>تقرير السفن الشهري</h4>
+                                <p style="margin: 10px 0; color: #666;">تقرير مفصل عن جميع السفن المسجلة خلال الشهر</p>
+                                <button class="btn btn-primary" onclick="generateReport('monthly_ships')">
+                                    <i class="fas fa-download"></i> تحميل
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <div class="stat-card">
+                            <div class="stat-icon" style="background: linear-gradient(135deg, var(--success), #1e7e34);">
+                                <i class="fas fa-file-excel"></i>
+                            </div>
+                            <div class="stat-content">
+                                <h4>تقرير أداء الموظفين</h4>
+                                <p style="margin: 10px 0; color: #666;">إحصائيات إنجاز الموظفين والطلبات المرفوضة</p>
+                                <button class="btn btn-primary" onclick="generateReport('employees')">
+                                    <i class="fas fa-download"></i> تحميل
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <div class="stat-card">
+                            <div class="stat-icon" style="background: linear-gradient(135deg, var(--warning), #e0a800);">
+                                <i class="fas fa-file-alt"></i>
+                            </div>
+                            <div class="stat-content">
+                                <h4>تقرير الطلبات المرفوضة</h4>
+                                <p style="margin: 10px 0; color: #666;">تحليل أسباب رفض الطلبات حسب الموظفين</p>
+                                <button class="btn btn-primary" onclick="generateReport('rejected')">
+                                    <i class="fas fa-download"></i> تحميل
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </main>
+    </div>
+
+    <!-- نافذة تعديل السفينة وإعادتها للموظف (جديد) -->
+    <div id="editShipModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3><i class="fas fa-edit"></i> تعديل بيانات السفينة وإعادتها للموظف</h3>
+                <button class="modal-close" onclick="closeModal('editShipModal')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="editShipForm" onsubmit="modifyAndReturnToEmployee(event)">
+                    <input type="hidden" id="editApplicationId">
+                    <input type="hidden" id="editShipId">
+                    <input type="hidden" id="editEmployeeId">
+                    <input type="hidden" id="editEmployeeBranch">
+                    
+                    <!-- تفاصيل الرفض -->
+                    <div class="rejection-details" id="rejectionDetailsContainer">
+                        <h4><i class="fas fa-exclamation-triangle"></i> تفاصيل الرفض</h4>
+                        <div class="rejection-meta" id="rejectionMeta">
+                            <span><i class="fas fa-user"></i> الموظف: <span id="rejectedByName">---</span></span>
+                            <span><i class="fas fa-building"></i> الفرع: <span id="rejectedBranch">---</span></span>
+                            <span><i class="fas fa-clock"></i> التاريخ: <span id="rejectedAt">---</span></span>
+                        </div>
+                        <div class="rejection-reason" id="rejectionReason">
+                            ---
+                        </div>
+                    </div>
+                    
+                    <!-- معلومات السفينة الأساسية -->
+                    <div class="section-divider">معلومات السفينة الأساسية</div>
+                    
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label>اسم السفينة (عربي) *</label>
+                            <input type="text" id="editShipNameAr" class="form-control" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>اسم السفينة (إنجليزي)</label>
+                            <input type="text" id="editShipNameEn" class="form-control">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>رقم IMO</label>
+                            <input type="text" id="editImoNumber" class="form-control">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>رقم التسجيل</label>
+                            <input type="text" id="editRegistrationNumber" class="form-control">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>نوع السفينة *</label>
+                            <select id="editShipType" class="form-control" required>
+                                <option value="cargo">سفينة شحن</option>
+                                <option value="tanker">ناقلة نفط</option>
+                                <option value="container">سفينة حاويات</option>
+                                <option value="passenger">سفينة ركاب</option>
+                                <option value="fishing">سفينة صيد</option>
+                                <option value="tug">قاطرة</option>
+                                <option value="yacht">يخت</option>
+                                <option value="other">أخرى</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>ميناء التسجيل *</label>
+                            <select id="editPortOfRegistry" class="form-control" required>
+                                <option value="aden">عدن</option>
+                                <option value="mukalla">المكلا</option>
+                                <option value="hodeidah">الحديدة</option>
+                                <option value="salif">الصليف</option>
+                                <option value="mocha">المخا</option>
+                                <option value="socotra">سقطرى</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <!-- المواصفات الفنية -->
+                    <div class="section-divider">المواصفات الفنية</div>
+                    
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label>الحمولة الإجمالية (GT) *</label>
+                            <input type="number" id="editGrossTonnage" class="form-control" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>الحمولة الصافية (NT) *</label>
+                            <input type="number" id="editNetTonnage" class="form-control" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>الطول الكلي (متر) *</label>
+                            <input type="number" step="0.01" id="editLength" class="form-control" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>العرض (متر) *</label>
+                            <input type="number" step="0.01" id="editBeam" class="form-control" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>العمق (متر) *</label>
+                            <input type="number" step="0.01" id="editDepth" class="form-control" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>سنة الصنع *</label>
+                            <input type="number" id="editYearBuilt" class="form-control" min="1900" max="2026" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>بلد الصنع</label>
+                            <input type="text" id="editBuildingCountry" class="form-control">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>مادة الهيكل</label>
+                            <select id="editHullMaterial" class="form-control">
+                                <option value="steel">فولاذ</option>
+                                <option value="aluminum">ألمنيوم</option>
+                                <option value="fiberglass">فايبر جلاس</option>
+                                <option value="wood">خشب</option>
+                                <option value="composite">مركب</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <!-- ملاحظات المسؤول -->
+                    <div class="section-divider">ملاحظات المسؤول</div>
+                    
+                    <div class="form-group">
+                        <label>ملاحظات للموظف</label>
+                        <textarea id="editAdminNotes" class="form-control" rows="3" placeholder="أضف ملاحظاتك هنا..."></textarea>
+                    </div>
+                    
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-outline" onclick="closeModal('editShipModal')">
+                            إلغاء
+                        </button>
+                        <button type="submit" class="btn btn-success">
+                            <i class="fas fa-undo-alt"></i> تعديل وإعادة للموظف
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- نافذة إضافة موظف -->
+    <div id="addEmployeeModal" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 2000; display: none; align-items: center; justify-content: center;">
+        <div style="background: white; width: 90%; max-width: 500px; border-radius: var(--radius-lg); max-height: 90vh; overflow-y: auto;">
+            <div style="background: linear-gradient(135deg, var(--primary), var(--primary-dark)); color: white; padding: 20px; border-radius: var(--radius-lg) var(--radius-lg) 0 0; display: flex; justify-content: space-between; align-items: center;">
+                <h3 style="margin: 0; display: flex; align-items: center; gap: 10px;">
+                    <i class="fas fa-user-plus"></i> إضافة موظف جديد
+                </h3>
+                <button onclick="hideAddEmployeeModal()" style="background: none; border: none; color: white; font-size: 1.8rem; cursor: pointer;">&times;</button>
+            </div>
+            <div style="padding: 25px;">
+                <form id="addEmployeeForm" onsubmit="saveEmployee(event)">
+                    <div style="margin-bottom: 20px;">
+                        <label style="display: block; margin-bottom: 8px; font-weight: 600;">الاسم الكامل</label>
+                        <input type="text" id="empFullName" required style="width: 100%; padding: 12px; border: 1px solid #e2e8f0; border-radius: var(--radius-sm);">
+                    </div>
+                    
+                    <div style="margin-bottom: 20px;">
+                        <label style="display: block; margin-bottom: 8px; font-weight: 600;">البريد الإلكتروني</label>
+                        <input type="email" id="empEmail" required style="width: 100%; padding: 12px; border: 1px solid #e2e8f0; border-radius: var(--radius-sm);">
+                    </div>
+                    
+                    <div style="margin-bottom: 20px;">
+                        <label style="display: block; margin-bottom: 8px; font-weight: 600;">الفرع</label>
+                        <select id="empBranch" required style="width: 100%; padding: 12px; border: 1px solid #e2e8f0; border-radius: var(--radius-sm);">
+                            <option value="">اختر الفرع</option>
+                            <option value="aden">فرع عدن</option>
+                            <option value="mukalla">فرع المكلا</option>
+                            <option value="hodeidah">فرع الحديدة</option>
+                            <option value="salif">فرع الصليف</option>
+                            <option value="mocha">فرع المخا</option>
+                            <option value="socotra">فرع سقطرى</option>
+                        </select>
+                    </div>
+                    
+                    <div style="margin-bottom: 20px;">
+                        <label style="display: block; margin-bottom: 8px; font-weight: 600;">القسم</label>
+                        <input type="text" id="empDepartment" required style="width: 100%; padding: 12px; border: 1px solid #e2e8f0; border-radius: var(--radius-sm);">
+                    </div>
+                    
+                    <div style="margin-bottom: 20px;">
+                        <label style="display: block; margin-bottom: 8px; font-weight: 600;">المسمى الوظيفي</label>
+                        <input type="text" id="empPosition" required style="width: 100%; padding: 12px; border: 1px solid #e2e8f0; border-radius: var(--radius-sm);">
+                    </div>
+                    
+                    <div style="margin-bottom: 20px;">
+                        <label style="display: block; margin-bottom: 8px; font-weight: 600;">كلمة المرور المؤقتة</label>
+                        <input type="password" id="empPassword" required style="width: 100%; padding: 12px; border: 1px solid #e2e8f0; border-radius: var(--radius-sm);">
+                    </div>
+                    
+                    <div style="display: flex; gap: 15px; justify-content: flex-end; margin-top: 30px;">
+                        <button type="button" onclick="hideAddEmployeeModal()" style="padding: 12px 25px; border: 1px solid #e2e8f0; background: white; border-radius: var(--radius-sm); cursor: pointer;">
+                            إلغاء
+                        </button>
+                        <button type="submit" style="padding: 12px 25px; background: linear-gradient(135deg, var(--primary), var(--primary-dark)); color: white; border: none; border-radius: var(--radius-sm); cursor: pointer; font-weight: 600;">
+                            <i class="fas fa-save"></i> حفظ
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ================================================
+        // تهيئة Supabase
+        // ================================================
+        const SUPABASE_URL = 'https://your-project-id.supabase.co';
+        const SUPABASE_ANON_KEY = 'your-anon-key';
+        
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+            auth: {
+                autoRefreshToken: true,
+                persistSession: true
+            }
+        });
+
+        // ================================================
+        // المتغيرات العامة
+        // ================================================
+        let currentUser = null;
+        let applicationsData = {
+            all: [],
+            pending: [],
+            reviewing: [],
+            approved: [],
+            rejected: []
+        };
+        let employeesData = [];
+        let shipsData = [];
+        let registrationsChart = null;
+        let shipTypesChart = null;
+
+        // ================================================
+        // التحقق من الجلسة وتحميل البيانات
+        // ================================================
+        document.addEventListener('DOMContentLoaded', async function() {
+            await checkAuth();
+            await loadAllData();
+        });
+
+        async function checkAuth() {
+            try {
+                const { data: { session }, error } = await supabase.auth.getSession();
+                
+                if (error || !session) {
+                    window.location.href = '../index.html';
+                    return;
+                }
+                
+                const { data: user, error: userError } = await supabase
+                    .from('users')
+                    .select('*')
+                    .eq('id', session.user.id)
+                    .single();
+                
+                if (userError || !user) {
+                    window.location.href = '../index.html';
+                    return;
+                }
+                
+                if (user.role !== 'admin') {
+                    window.location.href = '../index.html';
+                    return;
+                }
+                
+                currentUser = user;
+                
+                // تحديث واجهة المستخدم
+                document.getElementById('adminName').textContent = user.full_name;
+                document.getElementById('sidebarAdminName').textContent = user.full_name;
+                
+            } catch (error) {
+                console.error('خطأ في التحقق من الجلسة:', error);
+                window.location.href = '../index.html';
+            }
+        }
+
+        // ================================================
+        // الوظيفة الجديدة: تحميل جميع البيانات للمسؤول
+        // ================================================
+        async function loadAllData() {
+            try {
+                // تحميل جميع الطلبات مع معلومات الموظفين
+                const { data: applications, error: appsError } = await supabase
+                    .from('applications')
+                    .select(`
+                        *,
+                        ship:ships (ship_name_ar, registration_number, ship_type, gross_tonnage),
+                        owner:owner_id (full_name, email),
+                        assigned:assigned_to (full_name),
+                        rejected_by_user:users!applications_rejected_by_fkey (
+                            id, full_name, branch
+                        ),
+                        ready_for_employee:users!applications_ready_for_employee_id_fkey (
+                            id, full_name, branch
+                        )
+                    `)
+                    .order('created_at', { ascending: false });
+                
+                if (appsError) throw appsError;
+                
+                applicationsData.all = applications || [];
+                
+                // تصنيف الطلبات
+                applicationsData.pending = applicationsData.all.filter(a => a.status === 'pending');
+                applicationsData.reviewing = applicationsData.all.filter(a => a.status === 'reviewing');
+                applicationsData.approved = applicationsData.all.filter(a => ['approved', 'completed'].includes(a.status));
+                applicationsData.rejected = applicationsData.all.filter(a => a.status === 'rejected_by_employee');
+                
+                // تحميل الموظفين
+                await loadEmployees();
+                
+                // تحميل السفن
+                await loadShips();
+                
+                // تحديث الإحصائيات
+                updateStatistics();
+                
+                // تحديث الجداول
+                updateApplicationsTable();
+                updateRejectedApplicationsTable();
+                updateRecentRejectedTable();
+                
+                // تحميل بيانات الرسوم البيانية
+                await loadChartData();
+                
+            } catch (error) {
+                console.error('خطأ في تحميل البيانات:', error);
+            }
+        }
+
+        // ================================================
+        // تحديث الإحصائيات
+        // ================================================
+        function updateStatistics() {
+            document.getElementById('totalShipsStat').textContent = shipsData.length;
+            document.getElementById('activeShipsStat').textContent = shipsData.filter(s => s.status === 'active').length;
+            document.getElementById('pendingApplicationsStat').textContent = applicationsData.pending.length;
+            document.getElementById('rejectedApplicationsStat').textContent = applicationsData.rejected.length;
+            
+            document.getElementById('applicationsCount').textContent = applicationsData.all.length;
+            document.getElementById('rejectedCount').textContent = applicationsData.rejected.length;
+            document.getElementById('shipsCount').textContent = shipsData.length;
+            document.getElementById('employeesCount').textContent = employeesData.length;
+            
+            // تحديث بادجات التبويبات
+            document.getElementById('allAppsBadge').textContent = applicationsData.all.length;
+            document.getElementById('pendingAppsBadge').textContent = applicationsData.pending.length;
+            document.getElementById('reviewingAppsBadge').textContent = applicationsData.reviewing.length;
+            document.getElementById('approvedAppsBadge').textContent = applicationsData.approved.length;
+            document.getElementById('rejectedAppsBadge').textContent = applicationsData.rejected.length;
+        }
+
+        // ================================================
+        // عرض الطلبات المرفوضة (جديد)
+        // ================================================
+        function updateRejectedApplicationsTable() {
+            const tbody = document.getElementById('rejectedApplicationsBody');
+            
+            if (applicationsData.rejected.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="8" style="text-align: center;">لا توجد طلبات مرفوضة</td></tr>';
+                return;
+            }
+            
+            let html = '';
+            applicationsData.rejected.forEach(app => {
+                const rejectedBy = app.rejected_by_user;
+                const readyFor = app.ready_for_employee;
+                
+                html += `
+                    <tr class="rejected-row">
+                        <td><strong>${app.application_number || '---'}</strong></td>
+                        <td>${app.ship?.ship_name_ar || '---'}</td>
+                        <td>${app.owner?.full_name || '---'}</td>
+                        <td>
+                            <div class="employee-info-card">
+                                <div class="employee-mini-avatar">
+                                    <i class="fas fa-user"></i>
+                                </div>
+                                <div class="employee-mini-details">
+                                    <span class="employee-mini-name">${rejectedBy?.full_name || '---'}</span>
+                                    <span class="employee-mini-branch">${getBranchName(rejectedBy?.branch)}</span>
+                                </div>
+                            </div>
+                        </td>
+                        <td>${getBranchName(app.branch)}</td>
+                        <td>
+                            <span title="${app.rejection_reason || '---'}">
+                                ${(app.rejection_reason || '---').substring(0, 30)}${app.rejection_reason?.length > 30 ? '...' : ''}
+                            </span>
+                        </td>
+                        <td>${formatDate(app.rejected_at)}</td>
+                        <td>
+                            <button class="action-btn btn-view" onclick="viewApplication('${app.id}')" title="عرض التفاصيل">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                            <button class="action-btn btn-edit" onclick="openEditModal('${app.id}')" title="تعديل وإعادة للموظف">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            });
+            
+            tbody.innerHTML = html;
+        }
+
+        function updateRecentRejectedTable() {
+            const tbody = document.getElementById('recentRejectedBody');
+            const recent = applicationsData.rejected.slice(0, 5);
+            
+            if (recent.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="7" style="text-align: center;">لا توجد طلبات مرفوضة حديثاً</td></tr>';
+                return;
+            }
+            
+            let html = '';
+            recent.forEach(app => {
+                const rejectedBy = app.rejected_by_user;
+                
+                html += `
+                    <tr>
+                        <td><strong>${app.application_number || '---'}</strong></td>
+                        <td>${app.ship?.ship_name_ar || '---'}</td>
+                        <td>${rejectedBy?.full_name || '---'}</td>
+                        <td>${getBranchName(rejectedBy?.branch)}</td>
+                        <td>
+                            <span title="${app.rejection_reason || '---'}">
+                                ${(app.rejection_reason || '---').substring(0, 25)}${app.rejection_reason?.length > 25 ? '...' : ''}
+                            </span>
+                        </td>
+                        <td>${formatDate(app.rejected_at)}</td>
+                        <td>
+                            <button class="action-btn btn-edit" onclick="openEditModal('${app.id}')">
+                                <i class="fas fa-edit"></i> تعديل
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            });
+            
+            tbody.innerHTML = html;
+        }
+
+        // ================================================
+        // الوظيفة الجديدة: فتح نافذة التعديل
+        // ================================================
+        async function openEditModal(applicationId) {
+            try {
+                // جلب بيانات الطلب كاملة
+                const { data: app, error } = await supabase
+                    .from('applications')
+                    .select(`
+                        *,
+                        ship:ships (*),
+                        owner:owner_id (*),
+                        rejected_by_user:users!applications_rejected_by_fkey (*)
+                    `)
+                    .eq('id', applicationId)
+                    .single();
+                
+                if (error) throw error;
+                
+                // تعبئة الحقول المخفية
+                document.getElementById('editApplicationId').value = app.id;
+                document.getElementById('editShipId').value = app.ship.id;
+                document.getElementById('editEmployeeId').value = app.rejected_by;
+                document.getElementById('editEmployeeBranch').value = app.branch;
+                
+                // تعبئة تفاصيل الرفض
+                document.getElementById('rejectedByName').textContent = app.rejected_by_user?.full_name || '---';
+                document.getElementById('rejectedBranch').textContent = getBranchName(app.rejected_by_user?.branch);
+                document.getElementById('rejectedAt').textContent = formatDate(app.rejected_at);
+                document.getElementById('rejectionReason').textContent = app.rejection_reason || '---';
+                
+                // تعبئة بيانات السفينة
+                document.getElementById('editShipNameAr').value = app.ship.ship_name_ar || '';
+                document.getElementById('editShipNameEn').value = app.ship.ship_name_en || '';
+                document.getElementById('editImoNumber').value = app.ship.imo_number || '';
+                document.getElementById('editRegistrationNumber').value = app.ship.registration_number || '';
+                document.getElementById('editShipType').value = app.ship.ship_type || 'cargo';
+                document.getElementById('editPortOfRegistry').value = app.ship.port_of_registry || 'aden';
+                document.getElementById('editGrossTonnage').value = app.ship.gross_tonnage || '';
+                document.getElementById('editNetTonnage').value = app.ship.net_tonnage || '';
+                document.getElementById('editLength').value = app.ship.length || '';
+                document.getElementById('editBeam').value = app.ship.beam || '';
+                document.getElementById('editDepth').value = app.ship.depth || '';
+                document.getElementById('editYearBuilt').value = app.ship.year_built || '';
+                document.getElementById('editBuildingCountry').value = app.ship.building_country || '';
+                document.getElementById('editHullMaterial').value = app.ship.hull_material || 'steel';
+                document.getElementById('editAdminNotes').value = '';
+                
+                // إظهار النافذة
+                document.getElementById('editShipModal').style.display = 'flex';
+                
+            } catch (error) {
+                console.error('خطأ في تحميل بيانات الطلب:', error);
+                alert('فشل تحميل بيانات الطلب');
+            }
+        }
+
+        // ================================================
+        // الوظيفة الجديدة: تعديل وإعادة الطلب للموظف
+        // ================================================
+        async function modifyAndReturnToEmployee(e) {
+            e.preventDefault();
+            
+            const applicationId = document.getElementById('editApplicationId').value;
+            const shipId = document.getElementById('editShipId').value;
+            const employeeId = document.getElementById('editEmployeeId').value;
+            const employeeBranch = document.getElementById('editEmployeeBranch').value;
+            const adminNotes = document.getElementById('editAdminNotes').value;
+            
+            try {
+                // 1. تحديث بيانات السفينة
+                const shipUpdates = {
+                    ship_name_ar: document.getElementById('editShipNameAr').value,
+                    ship_name_en: document.getElementById('editShipNameEn').value || null,
+                    imo_number: document.getElementById('editImoNumber').value || null,
+                    registration_number: document.getElementById('editRegistrationNumber').value || null,
+                    ship_type: document.getElementById('editShipType').value,
+                    port_of_registry: document.getElementById('editPortOfRegistry').value,
+                    gross_tonnage: parseFloat(document.getElementById('editGrossTonnage').value),
+                    net_tonnage: parseFloat(document.getElementById('editNetTonnage').value),
+                    length: parseFloat(document.getElementById('editLength').value),
+                    beam: parseFloat(document.getElementById('editBeam').value),
+                    depth: parseFloat(document.getElementById('editDepth').value),
+                    year_built: parseInt(document.getElementById('editYearBuilt').value),
+                    building_country: document.getElementById('editBuildingCountry').value || null,
+                    hull_material: document.getElementById('editHullMaterial').value || null,
+                    updated_at: new Date().toISOString()
+                };
+                
+                const { error: shipError } = await supabase
+                    .from('ships')
+                    .update(shipUpdates)
+                    .eq('id', shipId);
+                
+                if (shipError) throw shipError;
+                
+                // 2. تحديث حالة الطلب وإعادته لنفس الموظف
+                const { error: appError } = await supabase
+                    .from('applications')
+                    .update({
+                        status: 'ready_for_employee',
+                        admin_modified_by: currentUser.id,
+                        admin_modified_at: new Date().toISOString(),
+                        admin_notes: adminNotes || null,
+                        ready_for_employee_id: employeeId,
+                        ready_for_employee_branch: employeeBranch,
+                        rejection_reason: null, // مسح سبب الرفض بعد التعديل
+                        updated_at: new Date().toISOString()
+                    })
+                    .eq('id', applicationId);
+                
+                if (appError) throw appError;
+                
+                // 3. إنشاء إشعار للموظف
+                await supabase
+                    .from('notifications')
+                    .insert({
+                        user_id: employeeId,
+                        title: 'طلب جاهز لإصدار شهادة',
+                        message: `تم تعديل بيانات الطلب رقم ${applicationId} من قبل المسؤول، وهو جاهز لإصدار الشهادة`,
+                        type: 'success',
+                        link: `/branch-employee-dashboard.html?application=${applicationId}`,
+                        created_at: new Date().toISOString()
+                    });
+                
+                alert('✅ تم تعديل بيانات السفينة وإعادتها للموظف بنجاح');
+                closeModal('editShipModal');
+                
+                // إعادة تحميل البيانات
+                await loadAllData();
+                
+            } catch (error) {
+                console.error('خطأ في تعديل الطلب:', error);
+                alert('فشل تعديل الطلب: ' + error.message);
+            }
+        }
+
+        // ================================================
+        // الوظائف القديمة المحدثة
+        // ================================================
+        function updateApplicationsTable() {
+            const tbody = document.getElementById('applicationsBody');
+            
+            if (applicationsData.all.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="8" style="text-align: center;">لا توجد طلبات</td></tr>';
+                return;
+            }
+            
+            let html = '';
+            applicationsData.all.slice(0, 20).forEach(app => {
+                const statusClass = {
+                    'pending': 'status-pending',
+                    'reviewing': 'status-reviewing',
+                    'approved': 'status-approved',
+                    'rejected': 'status-rejected',
+                    'rejected_by_employee': 'status-rejected-by-employee',
+                    'completed': 'status-approved',
+                    'ready_for_employee': 'status-approved'
+                }[app.status] || 'status-pending';
+                
+                const statusText = {
+                    'pending': 'قيد المراجعة',
+                    'reviewing': 'جاري المعالجة',
+                    'approved': 'مقبولة',
+                    'rejected': 'مرفوضة',
+                    'rejected_by_employee': 'مرفوضة من موظف',
+                    'completed': 'مكتملة',
+                    'ready_for_employee': 'جاهزة للموظف'
+                }[app.status] || app.status;
+                
+                let actions = `
+                    <button class="action-btn btn-view" onclick="viewApplication('${app.id}')">
+                        <i class="fas fa-eye"></i>
+                    </button>
+                `;
+                
+                if (app.status === 'rejected_by_employee') {
+                    actions += `
+                        <button class="action-btn btn-edit" onclick="openEditModal('${app.id}')">
+                            <i class="fas fa-edit"></i> تعديل
+                        </button>
+                    `;
+                }
+                
+                html += `
+                    <tr ${app.status === 'rejected_by_employee' ? 'class="rejected-row"' : ''}>
+                        <td><strong>${app.application_number || '---'}</strong></td>
+                        <td>${app.ship?.ship_name_ar || '---'}</td>
+                        <td>${app.owner?.full_name || '---'}</td>
+                        <td>${formatDate(app.submission_date)}</td>
+                        <td>${getBranchName(app.branch)}</td>
+                        <td>${app.assigned?.full_name || 'غير معين'}</td>
+                        <td><span class="status-badge ${statusClass}">${statusText}</span></td>
+                        <td>${actions}</td>
+                    </tr>
+                `;
+            });
+            
+            tbody.innerHTML = html;
+        }
+
+        async function filterApplications(status) {
+            const tbody = document.getElementById('applicationsBody');
+            let filteredApps = [];
+            
+            if (status === 'all') {
+                filteredApps = applicationsData.all;
+            } else if (status === 'rejected_by_employee') {
+                filteredApps = applicationsData.rejected;
+            } else {
+                filteredApps = applicationsData[status] || [];
+            }
+            
+            // تحديث عرض الجدول (يمكن استخدام نفس دالة updateApplicationsTable مع فلتر)
+            // للتبسيط، سأعيد تحميل الصفحة بالكامل
+            await loadAllData();
+            
+            // تحديث التبويبات النشطة
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            event.target.classList.add('active');
+        }
+
+        async function loadEmployees() {
+            try {
+                const { data, error } = await supabase
+                    .from('users')
+                    .select('*')
+                    .in('role', ['branch_employee', 'inspector', 'finance_officer'])
+                    .order('created_at', { ascending: false });
+                
+                if (error) throw error;
+                
+                employeesData = data || [];
+                updateEmployeesTable();
+                
+            } catch (error) {
+                console.error('خطأ في تحميل الموظفين:', error);
+            }
+        }
+
+        function updateEmployeesTable() {
+            const tbody = document.getElementById('employeesBody');
+            
+            if (employeesData.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="7" style="text-align: center;">لا يوجد موظفون</td></tr>';
+                return;
+            }
+            
+            let html = '';
+            employeesData.forEach(emp => {
+                html += `
+                    <tr>
+                        <td>${emp.full_name}</td>
+                        <td>${emp.email}</td>
+                        <td>${getBranchName(emp.branch)}</td>
+                        <td>${emp.department || '---'}</td>
+                        <td>${emp.position || '---'}</td>
+                        <td><span class="status-badge ${emp.status === 'active' ? 'status-approved' : 'status-pending'}">${emp.status === 'active' ? 'نشط' : 'غير نشط'}</span></td>
+                        <td>
+                            <button class="action-btn btn-view" onclick="viewEmployee('${emp.id}')">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                            <button class="action-btn btn-edit" onclick="editEmployee('${emp.id}')">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            });
+            
+            tbody.innerHTML = html;
+        }
+
+        async function loadShips() {
+            try {
+                const { data, error } = await supabase
+                    .from('ships')
+                    .select(`
+                        *,
+                        owner:owner_id (full_name)
+                    `)
+                    .order('created_at', { ascending: false });
+                
+                if (error) throw error;
+                
+                shipsData = data || [];
+                updateShipsTable();
+                
+            } catch (error) {
+                console.error('خطأ في تحميل السفن:', error);
+            }
+        }
+
+        function updateShipsTable() {
+            const tbody = document.getElementById('shipsBody');
+            
+            if (shipsData.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="8" style="text-align: center;">لا توجد سفن مسجلة</td></tr>';
+                return;
+            }
+            
+            let html = '';
+            shipsData.slice(0, 20).forEach(ship => {
+                const statusClass = {
+                    'active': 'status-approved',
+                    'pending': 'status-pending',
+                    'expired': 'status-rejected'
+                }[ship.status] || 'status-pending';
+                
+                const statusText = {
+                    'active': 'نشط',
+                    'pending': 'قيد المراجعة',
+                    'expired': 'منتهي'
+                }[ship.status] || ship.status;
+                
+                html += `
+                    <tr>
+                        <td><strong>${ship.registration_number || '---'}</strong></td>
+                        <td>${ship.ship_name_ar}</td>
+                        <td>${ship.ship_type}</td>
+                        <td>${ship.owner?.full_name || '---'}</td>
+                        <td>${formatDate(ship.registration_date)}</td>
+                        <td>${formatDate(ship.expiry_date) || '---'}</td>
+                        <td><span class="status-badge ${statusClass}">${statusText}</span></td>
+                        <td>
+                            <button class="action-btn btn-view" onclick="viewShip('${ship.id}')">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            });
+            
+            tbody.innerHTML = html;
+        }
+
+        // ================================================
+        // الرسوم البيانية
+        // ================================================
+        async function loadChartData() {
+            try {
+                // بيانات التسجيل الشهري
+                const { data: monthlyData } = await supabase
+                    .from('ships')
+                    .select('registration_date');
+                
+                const months = ['يناير', 'فبراير', 'مارس', 'أبريل', 'مايو', 'يونيو', 'يوليو', 'أغسطس', 'سبتمبر', 'أكتوبر', 'نوفمبر', 'ديسمبر'];
+                const monthlyCounts = new Array(12).fill(0);
+                
+                monthlyData?.forEach(ship => {
+                    if (ship.registration_date) {
+                        const month = new Date(ship.registration_date).getMonth();
+                        monthlyCounts[month]++;
+                    }
+                });
+                
+                updateRegistrationsChart(months, monthlyCounts);
+                
+                // بيانات أنواع السفن
+                const { data: shipTypes } = await supabase
+                    .from('ships')
+                    .select('ship_type');
+                
+                const typeCounts = {};
+                shipTypes?.forEach(ship => {
+                    typeCounts[ship.ship_type] = (typeCounts[ship.ship_type] || 0) + 1;
+                });
+                
+                updateShipTypesChart(typeCounts);
+                
+            } catch (error) {
+                console.error('خطأ في تحميل بيانات الرسوم البيانية:', error);
+            }
+        }
+
+        function updateRegistrationsChart(labels, data) {
+            const ctx = document.getElementById('registrationsChart').getContext('2d');
+            
+            if (registrationsChart) {
+                registrationsChart.destroy();
+            }
+            
+            registrationsChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'عدد السفن المسجلة',
+                        data: data,
+                        borderColor: '#1e4b7a',
+                        backgroundColor: 'rgba(30, 75, 122, 0.1)',
+                        borderWidth: 3,
+                        fill: true,
+                        tension: 0.4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                stepSize: 1
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        function updateShipTypesChart(data) {
+            const ctx = document.getElementById('shipTypesChart').getContext('2d');
+            
+            if (shipTypesChart) {
+                shipTypesChart.destroy();
+            }
+            
+            const labels = {
+                'cargo': 'سفن شحن',
+                'tanker': 'ناقلات نفط',
+                'passenger': 'سفن ركاب',
+                'fishing': 'سفن صيد',
+                'yacht': 'يخوت',
+                'container': 'سفن حاويات',
+                'tug': 'قاطرات',
+                'dredger': 'كراكات',
+                'research': 'سفن أبحاث',
+                'other': 'أخرى'
+            };
+            
+            const chartLabels = Object.keys(data).map(key => labels[key] || key);
+            const chartData = Object.values(data);
+            
+            shipTypesChart = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: chartLabels,
+                    datasets: [{
+                        data: chartData,
+                        backgroundColor: [
+                            '#1e4b7a',
+                            '#2c7be5',
+                            '#8b7355',
+                            '#28a745',
+                            '#ffc107',
+                            '#dc3545',
+                            '#17a2b8',
+                            '#6c757d',
+                            '#6610f2',
+                            '#e83e8c'
+                        ],
+                        borderWidth: 2,
+                        borderColor: '#fff'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            rtl: true
+                        }
+                    },
+                    cutout: '70%'
+                }
+            });
+        }
+
+        // ================================================
+        // دوال مساعدة
+        // ================================================
+        function showSection(sectionId) {
+            const sections = ['dashboard', 'applications', 'rejected', 'employees', 'ships', 'reports'];
+            
+            sections.forEach(id => {
+                const section = document.getElementById(`${id}Section`);
+                if (section) {
+                    section.style.display = id === sectionId ? 'block' : 'none';
+                }
+            });
+            
+            document.querySelectorAll('.menu-link').forEach(link => {
+                link.classList.remove('active');
+            });
+            
+            const activeLink = document.querySelector(`[onclick*="${sectionId}"]`);
+            if (activeLink) {
+                activeLink.classList.add('active');
+            }
+        }
+
+        function closeModal(modalId) {
+            document.getElementById(modalId).style.display = 'none';
+        }
+
+        function formatDate(date) {
+            if (!date) return '---';
+            const d = new Date(date);
+            const year = d.getFullYear();
+            const month = String(d.getMonth() + 1).padStart(2, '0');
+            const day = String(d.getDate()).padStart(2, '0');
+            return `${year}-${month}-${day}`;
+        }
+
+        function getBranchName(branch) {
+            const branches = {
+                'main': 'المقر الرئيسي',
+                'aden': 'عدن',
+                'mukalla': 'المكلا',
+                'hodeidah': 'الحديدة',
+                'salif': 'الصليف',
+                'mocha': 'المخا',
+                'socotra': 'سقطرى'
+            };
+            return branches[branch] || branch || 'غير محدد';
+        }
+
+        function viewApplication(applicationId) {
+            window.location.href = `application-details.html?id=${applicationId}`;
+        }
+
+        function viewEmployee(employeeId) {
+            window.location.href = `employee-details.html?id=${employeeId}`;
+        }
+
+        function editEmployee(employeeId) {
+            window.location.href = `edit-employee.html?id=${employeeId}`;
+        }
+
+        function viewShip(shipId) {
+            window.location.href = `ship-details.html?id=${shipId}`;
+        }
+
+        function searchShips() {
+            const searchTerm = document.getElementById('shipSearchInput').value;
+            // يمكن إضافة وظيفة البحث لاحقاً
+            alert('وظيفة البحث قيد التطوير');
+        }
+
+        function generateReport(reportType) {
+            alert(`سيتم إنشاء تقرير ${reportType} قريباً`);
+        }
+
+        function showAddEmployeeModal() {
+            document.getElementById('addEmployeeModal').style.display = 'flex';
+        }
+
+        function hideAddEmployeeModal() {
+            document.getElementById('addEmployeeModal').style.display = 'none';
+            document.getElementById('addEmployeeForm').reset();
+        }
+
+        async function saveEmployee(e) {
+            e.preventDefault();
+            alert('وظيفة إضافة الموظفين قيد التطوير');
+            hideAddEmployeeModal();
+        }
+
+        // ================================================
+        // تسجيل الخروج
+        // ================================================
+        async function logout() {
+            try {
+                await supabase.auth.signOut();
+                window.location.href = '../index.html';
+            } catch (error) {
+                console.error('خطأ في تسجيل الخروج:', error);
+                window.location.href = '../index.html';
+            }
+        }
+    </script>
+    <!-- تحميل مكتبة Supabase -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<!-- تحميل ملف auth.js الذي يحتوي على المفاتيح -->
+<script src="../js/auth.js"></script>
+</body>
+</html>

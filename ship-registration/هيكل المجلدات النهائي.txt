@@ -1,0 +1,30 @@
+نظام تسجيل جديد .txt/
+├── index.html
+├── /pages/
+│   ├── admin-dashboard.html
+│   ├── application-details.html
+│   ├── branch-employee-dashboard.html
+│   ├── login.html
+│   ├── reports.html
+│   ├── ship-application-print.html
+│   ├── ship-details.html
+│   ├── ship-owner-dashboard.html
+│   ├── ship-owner-login.html
+│   └── ship-owner-register.html
+├── /css/
+│   ├── style.css (التنسيقات الرئيسية)
+│   ├── login-styles.css (صفحات الدخول)
+│   ├── dashboard-styles.css (لوحات التحكم)
+│   ├── components.css (المكونات القابلة لإعادة الاستخدام)
+│   └── responsive.css (تحسينات الاستجابة)
+├── /js/
+│   ├── main.js (الوظائف الرئيسية)
+│   ├── auth.js (إدارة المصادقة)
+│   ├── dashboard-functions.js (وظائف لوحات التحكم)
+│   └── charts.js (الرسوم البيانية)
+├── /assets/
+│   └── /images/
+│       ├── logo.png (تحتاج إلى إضافته)
+│       └── favicon.ico (تحتاج إلى إضافته)
+└── /sql/ (اختياري)
+    └── database.sql
