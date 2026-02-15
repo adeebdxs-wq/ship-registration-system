@@ -1,0 +1,37 @@
+# ملف netlify.toml في المجلد الرئيسي
+[build]
+  publish = "."
+
+# إعادة توجيه طلبات CSS إلى المسار الصحيح
+[[redirects]]
+  from = "/css/*"
+  to = "/css/:splat"
+  status = 200
+
+[[redirects]]
+  from = "/js/*"
+  to = "/js/:splat"
+  status = 200
+
+[[redirects]]
+  from = "/assets/*"
+  to = "/assets/:splat"
+  status = 200
+
+# معالجة الصفحات الرئيسية
+[[redirects]]
+  from = "/"
+  to = "/index.html"
+  status = 200
+
+# دعم الصفحات في مجلد pages
+[[redirects]]
+  from = "/pages/*"
+  to = "/pages/:splat"
+  status = 200
+
+# fallback للصفحات غير الموجودة
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
